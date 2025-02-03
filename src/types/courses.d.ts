@@ -1,16 +1,21 @@
-export type Semester = "WS" | "SS";
+export type SemesterType = "WS" | "SS";
+export interface Semester {
+	year: number;
+	type: SemesterType;
+}
 export interface Course {
 	name: string;
 	ects: number;
-	available?: Semester;
-	recommendedSemester: number | null; // recommended semester (1–6) or null if not applicable
-	plannedSemester?: number; // the semester you plan to (or did) take the course
-	grade?: number; // grade for the course
-	type?: "UE" | "VL" | "PR" | "SE" | "KV"; // type of course
+	available?: SemesterType;
+	recommendedSemester: number | null;
+	plannedSemester?: number;
+	grade?: number;
+	type: "UE" | "VL" | "PR" | "SE" | "KV";
+	group: string;
+	notUsedForDistinction?: boolean;
 }
 
 export interface CourseGroup {
 	name: string;
-	courses: Course[];
-	notUsedForDistinction?: boolean;
+	courses: Omit<Course, "group">[];
 }
