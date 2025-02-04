@@ -46,15 +46,20 @@ export const getCourseStatus = (plannedSemester?: CoursePlan["plannedSemester"],
 	return status;
 };
 
-export const formatSemester = (semesterCount: number, startSemester: Semester) => {
+export const getSemester = (semester: number, startSemester: Semester) => {
 	let { type, year }: Semester = startSemester;
 
-	for (let i = 1; i < semesterCount; i++) {
+	for (let i = 1; i < semester; i++) {
 		type = type === "WS" ? "SS" : "WS";
 		if (type === "SS") {
 			year++;
 		}
 	}
 
-	return `${semesterCount} (${type} ${year % 100})`;
+	return { type, year };
+};
+
+export const formatSemester = (semesterCount: number, startSemester: Semester) => {
+	const semester = getSemester(semesterCount, startSemester);
+	return `${semesterCount} (${semester.type} ${semester.year})`;
 };

@@ -3,13 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { rawCourses } from "@/data/courses";
+import { gradesAtom } from "@/store/grades";
+import { planningAtom } from "@/store/planning";
 import { exportAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
 import { FileUp } from "lucide-react";
+import { toast } from "sonner";
 
 export default function SettingsScreen() {
 	const [exportData, importData] = useAtom(exportAtom);
+
+	const [, setPlanning] = useAtom(planningAtom);
+	const [, setGrading] = useAtom(gradesAtom);
 
 	const exportFile = () => {
 		const data = JSON.stringify(exportData);
@@ -30,6 +37,22 @@ export default function SettingsScreen() {
 			importData(data);
 		};
 		reader.readAsText(file);
+	};
+
+	const resetPlanning = () => {
+		setPlanning([]);
+		toast.success("Successfully reset course planning");
+	};
+
+	const resetGrading = () => {
+		setGrading([]);
+		toast.success("Successfully reset grading");
+	};
+
+	const resetToRecommended = () => {
+		setPlanning(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })));
+		setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
+		toast.success("Successfully reset to recommended study plan");
 	};
 
 	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
@@ -88,12 +111,22 @@ export default function SettingsScreen() {
 					<Button onClick={exportFile}>
 						<FileUp /> Export
 					</Button>
-
-					{/* <Dialog>
-						<DialogTrigger asChild>
-							<Button variant="outline">Share</Button>
-						</DialogTrigger>
-					</Dialog> */}
+				</CardContent>
+			</Card>
+			<Card className="">
+				<CardHeader>
+					<CardTitle>Reset</CardTitle>
+				</CardHeader>
+				<CardContent className="flex flex-col gap-4">
+					<Button onClick={resetPlanning} variant={"destructive"}>
+						Reset course planning
+					</Button>
+					<Button onClick={resetGrading} variant={"destructive"}>
+						Reset grading
+					</Button>
+					<Button onClick={resetToRecommended} variant={"destructive"}>
+						Reset to recommended study plan
+					</Button>
 				</CardContent>
 			</Card>
 		</section>

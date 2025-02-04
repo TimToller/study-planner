@@ -24,12 +24,13 @@ export default function GradesScreen() {
 				<CardContent className="flex flex-col gap-4">
 					<div className="flex flex-row justify-between">
 						<h2 className="text-lg">Course Average:</h2>
-						<h3 className="text-lg font-bold">{courseGradeAverage && round(courseGradeAverage)}</h3>
+						<h3 className="text-lg font-bold">{(courseGradeAverage && round(courseGradeAverage)) || "-"}</h3>
 					</div>
 					<div className="flex flex-row justify-between">
 						<h2 className="text-lg">Group Average:</h2>
 						<h3 className="text-lg font-bold">
-							{groupGradesRounded.length && round(average(groupGradesRounded.map((g) => g.average).filter((g) => !isNaN(g))))}
+							{(groupGradesRounded.length && round(average(groupGradesRounded.map((g) => g.average).filter((g) => !isNaN(g))))) ||
+								"-"}
 						</h3>
 					</div>
 				</CardContent>
@@ -61,11 +62,11 @@ export default function GradesScreen() {
 					<CardContent className="flex flex-col gap-4">
 						<div className="flex flex-row justify-between">
 							<h2 className="text-lg">Average Grade:</h2>
-							<h3 className="text-lg font-bold">{round(average)}</h3>
+							<h3 className="text-lg font-bold">{round(average) || "-"}</h3>
 						</div>
 						<div className="flex flex-row justify-between">
 							<h2 className="text-lg">Rounded Grade:</h2>
-							<h3 className="text-lg font-bold">{round(average, 0)}</h3>
+							<h3 className="text-lg font-bold">{round(average, 0) || "-"}</h3>
 						</div>
 						<h2>
 							{gradedECTS}/{totalECTS} ({round((gradedECTS / totalECTS) * 100)}%) ECTS

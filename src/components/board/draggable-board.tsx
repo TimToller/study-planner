@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatSemester } from "@/lib/semester";
-import { personalCoursesAtom, setPlanningAtom } from "@/store/planning";
+import { cn } from "@/lib/utils";
+import { personalCoursesAtom, planningInfoAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
 import { Course } from "@/types/courses";
 import {
@@ -19,6 +20,7 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
+import { ScrollArea } from "../ui/scroll-area";
 
 function DragItem({ course }: { course: Course }) {
 	if (!course) return null;
@@ -45,7 +47,15 @@ function DroppableContainer({ id, children }: { id: string; children: React.Reac
 	);
 }
 
-function SortableItem({ course, containerId }: { course: Course; containerId: string }) {
+function SortableItem({
+	course,
+	containerId,
+	info,
+}: {
+	course: Course;
+	containerId: string;
+	info?: "error" | "warning" | "recommendation";
+}) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: course.id,
 		data: { containerId },
@@ -63,7 +73,12 @@ function SortableItem({ course, containerId }: { course: Course; containerId: st
 			style={style}
 			{...attributes}
 			{...listeners}
-			className="p-2 bg-gray-200 rounded-md shadow-sm cursor-move transition-colors">
+			className={cn(
+				"p-2 bg-gray-200 rounded-md shadow-sm cursor-move transition-colors",
+				info && "border-2 border-gray-400",
+				info === "warning" && "border-yellow-400",
+				info === "error" && "border-red-400"
+			)}>
 			<div>
 				<div>
 					<div className="font-medium">{course.name}</div>
@@ -205,8 +220,6 @@ export default function DraggableBoard() {
 			const newDestCourses = [...destColumn.courses];
 			newDestCourses.splice(destIndex, 0, movingCourse);
 
-			console.log(overContainer, movingCourse);
-
 			setColumns({
 				...columns,
 				[activeContainer]: { ...sourceColumn, courses: newSourceCourses },
@@ -219,6 +232,19 @@ export default function DraggableBoard() {
 			});
 		}
 	};
+	const [{ errors, recommendations, warnings }] = useAtom(planningInfoAtom);
+
+	const getInfo = (courseId: UniqueIdentifier) => {
+		const course = findCourseById(courseId);
+		if (!course) return;
+		const error = errors.find((e) => e.name === course.name);
+		if (error) return "error";
+		const warning = warnings.find((w) => w.name === course.name);
+		if (warning) return "warning";
+		const recommendation = recommendations.find((r) => r.name === course.name);
+		if (recommendation) return "recommendation";
+		return;
+	};
 
 	return (
 		<DndContext
@@ -230,7 +256,7 @@ export default function DraggableBoard() {
 			}}
 			onDragCancel={() => setActiveId(null)}>
 			<div className="flex flex-row h-full gap-4 p-4 relative">
-				<div className="grid grid-cols-4 gap-4 col-span-4">
+				<div className="grid grid-cols-4 gap-4 col-span-4 w-full">
 					{Object.values(columns)
 						.filter((col) => !col.id.startsWith("search"))
 						.sort((a, b) => parseInt(a.id.replace("semester", ""), 10) - parseInt(b.id.replace("semester", ""), 10))
@@ -248,7 +274,7 @@ export default function DraggableBoard() {
 										<DroppableContainer id={column.id}>
 											<SortableContext items={column.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
 												{column.courses.map((course) => (
-													<SortableItem key={course.id} course={course} containerId={column.id} />
+													<SortableItem key={course.id} course={course} containerId={column.id} info={getInfo(course.id)} />
 												))}
 											</SortableContext>
 										</DroppableContainer>
@@ -257,15 +283,17 @@ export default function DraggableBoard() {
 							);
 						})}
 				</div>
-				<div className="h-screen max-h-screen overflow-y-auto rounded-md p-4 border-2 border-gray-300 bg-white shadow-md sticky top-5 min-w-[300px]">
-					<h2 className="text-xl font-semibold mb-4 ">Available Courses</h2>
-					<DroppableContainer id="search">
-						<SortableContext items={columns.search.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
-							{columns.search.courses.map((course) => (
-								<SortableItem key={course.id} course={course} containerId="search" />
-							))}
-						</SortableContext>
-					</DroppableContainer>
+				<div className="h-[95vh] rounded-md p-2 border-2 border-gray-300 bg-white shadow-md sticky top-2 bottom-2 min-w-[300px]">
+					<ScrollArea className="h-full p-2">
+						<h2 className="text-xl font-semibold mb-4 ">Available Courses</h2>
+						<DroppableContainer id="search">
+							<SortableContext items={columns.search.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
+								{columns.search.courses.map((course) => (
+									<SortableItem key={course.id} course={course} containerId="search" />
+								))}
+							</SortableContext>
+						</DroppableContainer>
+					</ScrollArea>
 				</div>
 			</div>
 			<DragOverlay>{activeId ? <DragItem course={findCourseById(activeId)!} /> : null}</DragOverlay>
