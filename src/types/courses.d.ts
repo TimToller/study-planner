@@ -27,7 +27,7 @@ export interface CourseGrading {
 
 export interface CoursePlan {
 	name: string;
-	plannedSemester: number;
+	plannedSemester: number | "accredited";
 }
 
 export type DependencyType = "hard" | "soft" | "recommended";

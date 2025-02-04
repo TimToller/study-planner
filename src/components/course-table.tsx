@@ -1,5 +1,7 @@
-import { getCourseStatus } from "@/lib/utils";
-import { setGradesAtom, setPlanningAtom } from "@/store/planning";
+import { useDebounce } from "@/hooks/useDebounce";
+import { formatSemester, getCourseStatus } from "@/lib/semester";
+import { personalCoursesAtom, setGradesAtom, setPlanningAtom } from "@/store/planning";
+import { startingSemesterAtom } from "@/store/settings";
 import { searchQueryAtom, selectedGroupsAtom, selectedTypesAtom, sortFieldAtom, sortOrderAtom } from "@/store/tableOptions";
 import { Course } from "@/types/courses";
 import { useAtom } from "jotai";
@@ -14,14 +16,13 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
-interface CoursesTableProps {
-	courses: Course[];
-}
+export default function CourseTable() {
+	const [courses] = useAtom(personalCoursesAtom);
 
-export default function CourseTable({ courses }: CoursesTableProps) {
 	const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
-	const [sortField, setSortField] = useAtom(sortFieldAtom);
-	const [sortOrder, setSortOrder] = useAtom(sortOrderAtom);
+	const debounceSearchQuery = useDebounce(searchQuery, 200);
+	const [sortField] = useAtom(sortFieldAtom);
+	const [sortOrder] = useAtom(sortOrderAtom);
 
 	const [selectedTypes, setSelectedTypes] = useAtom(selectedTypesAtom);
 	const [selectedGroups, setSelectedGroups] = useAtom(selectedGroupsAtom);
@@ -29,8 +30,8 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 	const filteredCourses = useMemo(() => {
 		let filtered = [...courses];
 
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
+		if (debounceSearchQuery) {
+			const query = debounceSearchQuery.toLowerCase();
 			filtered = filtered.filter((course) => {
 				return (
 					course.name.toLowerCase().includes(query) ||
@@ -73,16 +74,7 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 		}
 
 		return filtered;
-	}, [courses, searchQuery, selectedTypes, selectedGroups, sortField, sortOrder]);
-
-	const handleSort = (field: typeof sortField) => {
-		if (sortField === field) {
-			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-		} else {
-			setSortField(field);
-			setSortOrder("asc");
-		}
-	};
+	}, [courses, debounceSearchQuery, selectedTypes, selectedGroups, sortField, sortOrder]);
 
 	const activeFilterCount = selectedTypes.length + selectedGroups.length;
 
@@ -157,45 +149,60 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 					</SheetContent>
 				</Sheet>
 			</div>
-			<Table className="w-full">
-				<TableHeader>
-					<TableRow>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
-							Status {sortField === "status" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("group")}>
-							Group {sortField === "group" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("type")}>
-							Type {sortField === "type" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
-							Name {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("ects")}>
-							ECTS {sortField === "ects" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("available")}>
-							Available {sortField === "available" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("recommendedSemester")}>
-							Recommended {sortField === "recommendedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("plannedSemester")}>
-							Planned Semester {sortField === "plannedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("grade")}>
-							Grade {sortField === "grade" && (sortOrder === "asc" ? "↑" : "↓")}
-						</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{filteredCourses.map((course, idx) => (
-						<MemoTableRow key={idx} {...course} />
-					))}
-				</TableBody>
-			</Table>
+			<TableGuts filteredCourses={filteredCourses} />
 		</div>
+	);
+}
+
+function TableGuts({ filteredCourses }: { filteredCourses: Course[] }) {
+	const [sortField, setSortField] = useAtom(sortFieldAtom);
+	const [sortOrder, setSortOrder] = useAtom(sortOrderAtom);
+
+	const handleSort = (field: typeof sortField) => {
+		if (sortField === field) {
+			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+		} else {
+			setSortField(field);
+			setSortOrder("asc");
+		}
+	};
+
+	return (
+		<Table className="w-full">
+			<TableHeader>
+				<TableRow>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
+						Status {sortField === "status" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("group")}>
+						Group {sortField === "group" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("type")}>
+						Type {sortField === "type" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
+						Name {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("ects")}>
+						ECTS {sortField === "ects" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("available")}>
+						Available {sortField === "available" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("plannedSemester")}>
+						Semester {sortField === "plannedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+					<TableHead className="cursor-pointer select-none" onClick={() => handleSort("grade")}>
+						Grade {sortField === "grade" && (sortOrder === "asc" ? "↑" : "↓")}
+					</TableHead>
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{filteredCourses.map((course, idx) => (
+					<MemoTableRow key={idx} {...course} />
+				))}
+			</TableBody>
+		</Table>
 	);
 }
 
@@ -213,6 +220,8 @@ function TableRowElement({
 }: Pick<Course, "group" | "type" | "name" | "ects" | "available" | "recommendedSemester" | "plannedSemester" | "grade">) {
 	const [, updateGrade] = useAtom(setGradesAtom);
 	const [, updatePlanning] = useAtom(setPlanningAtom);
+
+	const [startingSemester] = useAtom(startingSemesterAtom);
 	return (
 		<TableRow>
 			<TableCell>
@@ -223,13 +232,13 @@ function TableRowElement({
 			<TableCell>{name}</TableCell>
 			<TableCell>{ects}</TableCell>
 			<TableCell>{available || "N/A"}</TableCell>
-			<TableCell>{recommendedSemester !== null ? recommendedSemester : "N/A"}</TableCell>
 			<TableCell>
 				<Select
 					onValueChange={(newSemester) => {
 						updatePlanning({
 							name: name,
-							plannedSemester: newSemester === "none" ? undefined : parseInt(newSemester),
+							plannedSemester:
+								newSemester === "none" ? undefined : newSemester === "accredited" ? newSemester : parseInt(newSemester),
 						});
 					}}
 					value={plannedSemester?.toString() ?? ""}>
@@ -239,14 +248,12 @@ function TableRowElement({
 					<SelectContent>
 						<SelectGroup>
 							<SelectLabel>Semester</SelectLabel>
-							<SelectItem value="1">1</SelectItem>
-							<SelectItem value="2">2</SelectItem>
-							<SelectItem value="3">3</SelectItem>
-							<SelectItem value="4">4</SelectItem>
-							<SelectItem value="5">5</SelectItem>
-							<SelectItem value="6">6</SelectItem>
-							<SelectItem value="7">7</SelectItem>
-							<SelectItem value="8">8</SelectItem>
+							{new Array(8).fill(0).map((_, i) => (
+								<SelectItem key={i} value={(i + 1).toString()}>
+									{formatSemester(i + 1, startingSemester)}
+								</SelectItem>
+							))}
+							<SelectItem value="accredited">Accredited</SelectItem>
 							<SelectItem value="none">None</SelectItem>
 						</SelectGroup>
 					</SelectContent>

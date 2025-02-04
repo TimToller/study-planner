@@ -1,4 +1,5 @@
-import { cn, getCourseStatus } from "@/lib/utils";
+import { getCourseStatus } from "@/lib/semester";
+import { cn } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 
 export const statusMap = {
