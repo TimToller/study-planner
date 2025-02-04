@@ -17,3 +17,24 @@ export const round = (value: number, precision = 2) => {
 };
 
 export const average = (values: number[]) => values.reduce((acc, v) => acc + v, 0) / values.length;
+
+export const getGroupColor = (group: string) => {
+	const colorPalate = ["#64ade6", "#ddb0f4", "#929489", "#cdf3a9", "#90be6d", "#43aa8b", "#557c93"].map((c) => c + "60");
+	switch (group) {
+		case "Bachelor Thesis":
+		case "AI Basics and Practical Training":
+			return colorPalate[0];
+		case "AI and Society":
+			return colorPalate[1];
+		case "Computer Science":
+			return colorPalate[2];
+		case "Data Science":
+			return colorPalate[3];
+		case "Knowledge Representation and Reasoning":
+			return colorPalate[4];
+		case "Machine Learning and Perception":
+			return colorPalate[5];
+		case "Mathematics":
+			return colorPalate[6];
+	}
+};

@@ -1,11 +1,12 @@
 import { rawCourses } from "@/data/courses";
 import { Course, CoursePlan } from "@/types/courses";
 
+import { dependencies } from "@/data/dependencies";
 import { getSemester } from "@/lib/semester";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { gradesAtom } from "./grades";
-import { startingSemesterAtom } from "./settings";
+import { ignoreGradedAtom, startingSemesterAtom } from "./settings";
 
 export const planningAtom = atomWithStorage<CoursePlan[]>("semester-plans", []);
 
@@ -42,13 +43,14 @@ export const personalCoursesAtom = atom((get) => {
 });
 
 export interface PlanningInfo {
-	name: string;
 	message: string;
-	course?: Course;
+	courses?: Course[];
 }
 export const planningInfoAtom = atom((get) => {
 	const planning = get(planningAtom);
 	const startingSemester = get(startingSemesterAtom);
+	const ignoreGraded = get(ignoreGradedAtom);
+	const grades = get(gradesAtom);
 
 	const errors: PlanningInfo[] = [];
 	const warnings: PlanningInfo[] = [];
@@ -60,7 +62,11 @@ export const planningInfoAtom = atom((get) => {
 		//Errors
 		const courseData = rawCourses.find((c) => c.name === course.name)!;
 
-		if (course.plannedSemester === undefined) {
+		if (course.plannedSemester === undefined || course.plannedSemester === "accredited") {
+			return;
+		}
+
+		if (ignoreGraded && grades.find((g) => g.name === course.name)?.grade !== undefined) {
 			return;
 		}
 
@@ -68,13 +74,12 @@ export const planningInfoAtom = atom((get) => {
 		semesterECTSMap.set(course.plannedSemester?.toString(), semesterECTS + courseData.ects);
 
 		//check WS or SS
-		if (course.plannedSemester !== "accredited" && courseData.available !== undefined) {
+		if (courseData.available !== undefined) {
 			const planned = getSemester(course.plannedSemester!, startingSemester);
 			if (planned.type !== courseData.available) {
 				errors.push({
-					name: course.name,
 					message: `Course **${course.name}** is only available in **${courseData.available}**`,
-					course: courseData,
+					courses: [courseData],
 				});
 			}
 		}
@@ -90,10 +95,47 @@ export const planningInfoAtom = atom((get) => {
 
 			if (courseVL && course.plannedSemester !== courseVL.plannedSemester) {
 				warnings.push({
-					name: course.name,
 					message: `Course **${course.name}** should ideally be taken in the same semester as the lecture`,
-					course: courseData,
+					courses: rawCourses.filter((c) => c.name.slice(3) === courseVL.name.slice(3)),
 				});
+			}
+		}
+
+		//check dependencies
+		const courseDependencies = dependencies.find((d) => d.name === course.name.slice(3))?.dependencies || [];
+		for (const dependency of courseDependencies) {
+			const requiredCourses = rawCourses.filter((c) => c.name.slice(3) === dependency.name);
+			const missingCourses = requiredCourses.filter(
+				(c) =>
+					!planning.some(
+						(p) =>
+							p.name === c.name &&
+							(p.plannedSemester === "accredited" || p.plannedSemester! <= (course.plannedSemester as number)!)
+					)
+			);
+			if (missingCourses.length > 0) {
+				switch (dependency.type) {
+					case "hard":
+						errors.push({
+							message: `Course **${course.name}** strongly depends on **${missingCourses.map((c) => c.name).join(", ")}**`,
+							courses: [courseData],
+						});
+						break;
+					case "soft":
+						warnings.push({
+							message: `Course **${course.name}** requires some of the knowledge of **${missingCourses
+								.map((c) => c.name)
+								.join(", ")}**`,
+							courses: [courseData],
+						});
+						break;
+					case "recommended":
+						recommendations.push({
+							message: `Before doing **${course.name}**, you could do **${missingCourses.map((c) => c.name).join(", ")}**`,
+							courses: [courseData],
+						});
+						break;
+				}
 			}
 		}
 	});
@@ -101,7 +143,6 @@ export const planningInfoAtom = atom((get) => {
 	semesterECTSMap.forEach((ects, semester) => {
 		if (ects > 40) {
 			recommendations.push({
-				name: "semester",
 				message: `You are planning **${ects} ECTS** in semester **${semester}**. I know you are ambitious, but maybe consider spreading it out a bit more ;)`,
 			});
 		}

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatSemester } from "@/lib/semester";
-import { cn } from "@/lib/utils";
+import { cn, getGroupColor } from "@/lib/utils";
 import { personalCoursesAtom, planningInfoAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
 import { Course } from "@/types/courses";
@@ -25,7 +25,7 @@ import { ScrollArea } from "../ui/scroll-area";
 function DragItem({ course }: { course: Course }) {
 	if (!course) return null;
 	return (
-		<div className="p-2 bg-gray-200 rounded-md shadow-lg cursor-grabbing">
+		<div className="p-2 rounded-md shadow-lg cursor-grabbing" style={{ backgroundColor: getGroupColor(course.group) }}>
 			<div className="font-medium">{course.name}</div>
 			<div className="text-sm text-gray-600">
 				{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
@@ -65,6 +65,7 @@ function SortableItem({
 		transform: CSS.Transform.toString(transform),
 		transition,
 		opacity: isDragging ? 0 : 1,
+		backgroundColor: getGroupColor(course.group),
 	};
 
 	return (
@@ -74,8 +75,8 @@ function SortableItem({
 			{...attributes}
 			{...listeners}
 			className={cn(
-				"p-2 bg-gray-200 rounded-md shadow-sm cursor-move transition-colors",
-				info && "border-2 border-gray-400",
+				`p-2 rounded-md shadow-sm cursor-move transition-colors`,
+				info && "border-4 border-gray-400",
 				info === "warning" && "border-yellow-400",
 				info === "error" && "border-red-400"
 			)}>
@@ -237,11 +238,11 @@ export default function DraggableBoard() {
 	const getInfo = (courseId: UniqueIdentifier) => {
 		const course = findCourseById(courseId);
 		if (!course) return;
-		const error = errors.find((e) => e.name === course.name);
+		const error = errors.find((e) => e.courses?.some((c) => c.name === course.name));
 		if (error) return "error";
-		const warning = warnings.find((w) => w.name === course.name);
+		const warning = warnings.find((w) => w.courses?.some((c) => c.name === course.name));
 		if (warning) return "warning";
-		const recommendation = recommendations.find((r) => r.name === course.name);
+		const recommendation = recommendations.find((r) => r.courses?.some((c) => c.name === course.name));
 		if (recommendation) return "recommendation";
 		return;
 	};

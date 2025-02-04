@@ -1,5 +1,6 @@
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatSemester, getCourseStatus } from "@/lib/semester";
+import { getGroupColor } from "@/lib/utils";
 import { setGradesAtom } from "@/store/grades";
 import { personalCoursesAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
@@ -230,12 +231,13 @@ function TableRowElement({
 	const [, updatePlanning] = useAtom(setPlanningAtom);
 
 	const [startingSemester] = useAtom(startingSemesterAtom);
+
 	return (
 		<TableRow>
 			<TableCell>
 				<CourseStatusBadge grade={grade} plannedSemester={plannedSemester} />
 			</TableCell>
-			<TableCell>{group}</TableCell>
+			<TableCell style={{ backgroundColor: getGroupColor(group) }}>{group}</TableCell>
 			<TableCell>{type}</TableCell>
 			<TableCell>{name}</TableCell>
 			<TableCell>{ects}</TableCell>

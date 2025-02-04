@@ -30,9 +30,3 @@ export interface CoursePlan {
 	name: string;
 	plannedSemester?: number | "accredited";
 }
-
-export type DependencyType = "hard" | "soft" | "recommended";
-export interface Dependency {
-	name: string;
-	type: DependencyType;
-}

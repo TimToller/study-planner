@@ -21,7 +21,7 @@ export const courseGroups: CourseGroup[] = [
 			{ type: "VL", name: "VL Lecture Series Artificial Intelligence", ects: 1.5, available: "WS", recommendedSemester: 1 },
 			{ type: "KV", name: "KV Responsible AI", ects: 3, available: "WS", recommendedSemester: 1 },
 			{ type: "KV", name: "KV Technology and Society", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "KV", name: "Gender Studies", ects: 3, available: "SS", recommendedSemester: 6 },
+			{ type: "KV", name: "KV Gender Studies", ects: 3, available: "SS", recommendedSemester: 6 },
 		],
 	},
 	{
@@ -95,11 +95,9 @@ export const courseGroups: CourseGroup[] = [
 	},
 	{
 		name: "Bachelor Thesis",
-		courses: [{ type: "SE", name: "Bachelor Thesis", ects: 9, recommendedSemester: 6 }],
+		courses: [{ type: "SE", name: "SE Bachelor Thesis", ects: 9, recommendedSemester: 6 }],
 	},
 ];
-
-export type CourseName = (typeof courseGroups)[number]["courses"][number]["name"];
 
 export const rawCourses: Course[] = courseGroups.reduce(
 	(acc, group) => acc.concat(group.courses.map((c) => ({ ...c, group: group.name, id: c.name }))),

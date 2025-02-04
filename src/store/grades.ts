@@ -6,7 +6,7 @@ import { atomWithStorage } from "jotai/utils";
 
 export const gradesAtom = atomWithStorage<CourseGrading[]>("grades", []);
 
-export const setGradesAtom = atom(null, (get, set, course: CourseGrading) => {
+export const setGradesAtom = atom(null, (get, set, course: CourseGrading | { name: string; grade: undefined }) => {
 	const current = get(gradesAtom);
 	const index = current.findIndex((p) => p.name === course.name);
 
