@@ -19,3 +19,19 @@ export interface CourseGroup {
 	name: string;
 	courses: Omit<Course, "group">[];
 }
+
+export interface CourseGrading {
+	name: string;
+	grade: number;
+}
+
+export interface CoursePlan {
+	name: string;
+	plannedSemester: number;
+}
+
+export type DependencyType = "hard" | "soft" | "recommended";
+export interface Dependency {
+	name: string;
+	type: DependencyType;
+}

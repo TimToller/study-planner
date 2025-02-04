@@ -1,5 +1,5 @@
 import { getCourseStatus } from "@/lib/utils";
-import { updateGradeAtom } from "@/store/course";
+import { setGradesAtom, setPlanningAtom } from "@/store/planning";
 import { searchQueryAtom, selectedGroupsAtom, selectedTypesAtom, sortFieldAtom, sortOrderAtom } from "@/store/tableOptions";
 import { Course } from "@/types/courses";
 import { useAtom } from "jotai";
@@ -26,7 +26,8 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 	const [selectedTypes, setSelectedTypes] = useAtom(selectedTypesAtom);
 	const [selectedGroups, setSelectedGroups] = useAtom(selectedGroupsAtom);
 
-	const [, updateGrade] = useAtom(updateGradeAtom);
+	const [, updateGrade] = useAtom(setGradesAtom);
+	const [, updatePlanning] = useAtom(setPlanningAtom);
 	const filteredCourses = useMemo(() => {
 		let filtered = [...courses];
 
@@ -202,17 +203,44 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 							<TableCell>{course.ects}</TableCell>
 							<TableCell>{course.available || "N/A"}</TableCell>
 							<TableCell>{course.recommendedSemester !== null ? course.recommendedSemester : "N/A"}</TableCell>
-							<TableCell>{course.plannedSemester ?? "N/A"}</TableCell>
+							<TableCell>
+								<Select
+									onValueChange={(newSemester) => {
+										updatePlanning({
+											name: course.name,
+											plannedSemester: newSemester === "none" ? undefined : parseInt(newSemester),
+										});
+									}}
+									value={course.plannedSemester?.toString() ?? ""}>
+									<SelectTrigger className="w-[160px]">
+										<SelectValue placeholder="Select a Semester" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectGroup>
+											<SelectLabel>Semester</SelectLabel>
+											<SelectItem value="1">1</SelectItem>
+											<SelectItem value="2">2</SelectItem>
+											<SelectItem value="3">3</SelectItem>
+											<SelectItem value="4">4</SelectItem>
+											<SelectItem value="5">5</SelectItem>
+											<SelectItem value="6">6</SelectItem>
+											<SelectItem value="7">7</SelectItem>
+											<SelectItem value="8">8</SelectItem>
+											<SelectItem value="none">None</SelectItem>
+										</SelectGroup>
+									</SelectContent>
+								</Select>
+							</TableCell>
 							<TableCell>
 								<Select
 									onValueChange={(newGrade) => {
 										updateGrade({
-											courseName: course.name,
+											name: course.name,
 											grade: newGrade === "none" ? undefined : parseInt(newGrade),
 										});
 									}}
 									value={course.grade?.toString() ?? ""}>
-									<SelectTrigger className="w-[180px]">
+									<SelectTrigger className="w-[150px]">
 										<SelectValue placeholder="Select a grade" />
 									</SelectTrigger>
 									<SelectContent>

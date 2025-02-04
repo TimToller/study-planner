@@ -57,10 +57,49 @@ export const courseGroups: CourseGroup[] = [
 		],
 	},
 	{
+		name: "Knowledge Representation and Reasoning",
+		courses: [
+			{ type: "UE", name: "UE Logic", ects: 1.5, available: "WS", recommendedSemester: 1 },
+			{ type: "VL", name: "VL Logic", ects: 3, available: "WS", recommendedSemester: 1 },
+			{ type: "UE", name: "UE Formal Models", ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", name: "VL Formal Models", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "UE", name: "UE Computational Logics for AI", ects: 1.5, available: "WS", recommendedSemester: 5 },
+			{ type: "VL", name: "VL Computational Logics for AI", ects: 3, available: "WS", recommendedSemester: 5 },
+		],
+	},
+	{
+		name: "Machine Learning and Perception",
+		courses: [
+			{ type: "UE", name: "UE Machine Learning: Supervised Techniques", ects: 1.5, available: "WS", recommendedSemester: 3 },
+			{ type: "VL", name: "VL Machine Learning: Supervised Techniques", ects: 3, available: "WS", recommendedSemester: 3 },
+			{ type: "UE", name: "UE Machine Learning: Unsupervised Techniques", ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", name: "VL Machine Learning: Unsupervised Techniques", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "UE", name: "UE Machine Learning and Pattern Classification", ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", name: "VL Machine Learning and Pattern Classification", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "UE", name: "UE Reinforcement Learning", ects: 1.5, available: "WS", recommendedSemester: 5 },
+			{ type: "VL", name: "VL Reinforcement Learning", ects: 3, available: "WS", recommendedSemester: 5 },
+		],
+	},
+	{
+		name: "Mathematics",
+		courses: [
+			{ type: "UE", name: "UE Mathematics for AI I", ects: 3, available: "WS", recommendedSemester: 1 },
+			{ type: "VL", name: "VL Mathematics for AI I", ects: 6, available: "WS", recommendedSemester: 1 },
+			{ type: "UE", name: "UE Mathematics for AI II", ects: 3, available: "SS", recommendedSemester: 2 },
+			{ type: "VL", name: "VL Mathematics for AI II", ects: 6, available: "SS", recommendedSemester: 2 },
+			{ type: "UE", name: "UE Mathematics for AI III", ects: 3, available: "WS", recommendedSemester: 3 },
+			{ type: "VL", name: "VL Mathematics for AI III", ects: 6, available: "WS", recommendedSemester: 3 },
+			{ type: "UE", name: "UE Numerical Optimization", ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", name: "VL Numerical Optimization", ects: 3, available: "SS", recommendedSemester: 4 },
+		],
+	},
+	{
 		name: "Bachelor Thesis",
 		courses: [{ type: "SE", name: "Bachelor Thesis", ects: 9, recommendedSemester: 6 }],
 	},
 ];
+
+export type CourseName = (typeof courseGroups)[number]["courses"][number]["name"];
 
 export const rawCourses: Course[] = courseGroups.reduce(
 	(acc, group) => acc.concat(group.courses.map((c) => ({ ...c, group: group.name }))),
