@@ -2,6 +2,8 @@
 
 A web application to help you plan and manage your JKU study schedule.
 
+Link: https://timtoller.github.io/study-planner/
+
 ## 🛠️ Installation
 
 1. Clone the repository:
