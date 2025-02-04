@@ -62,6 +62,13 @@ export default function CourseTable() {
 					const statusB = getCourseStatus(b.plannedSemester, b.grade);
 					return sortOrder === "asc" ? statusA.localeCompare(statusB) : statusB.localeCompare(statusA);
 				}
+				if (sortField === "plannedSemester") {
+					let aVal = a[sortField] ?? 100;
+					let bVal = b[sortField] ?? 100;
+					aVal = aVal === "accredited" ? -1 : aVal;
+					bVal = bVal === "accredited" ? -1 : bVal;
+					return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+				}
 				const aVal = a[sortField] ?? "";
 				const bVal = b[sortField] ?? "";
 				if (typeof aVal === "number" && typeof bVal === "number") {

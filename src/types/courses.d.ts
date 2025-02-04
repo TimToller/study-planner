@@ -6,9 +6,10 @@ export interface Semester {
 export interface Course {
 	name: string;
 	ects: number;
+	id: string;
 	available?: SemesterType;
 	recommendedSemester: number | null;
-	plannedSemester?: number;
+	plannedSemester?: number | "accredited";
 	grade?: number;
 	type: "UE" | "VL" | "PR" | "SE" | "KV";
 	group: string;
@@ -17,7 +18,7 @@ export interface Course {
 
 export interface CourseGroup {
 	name: string;
-	courses: Omit<Course, "group">[];
+	courses: Omit<Course, "group", "id">[];
 }
 
 export interface CourseGrading {
@@ -27,7 +28,7 @@ export interface CourseGrading {
 
 export interface CoursePlan {
 	name: string;
-	plannedSemester: number | "accredited";
+	plannedSemester?: number | "accredited";
 }
 
 export type DependencyType = "hard" | "soft" | "recommended";

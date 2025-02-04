@@ -1,4 +1,4 @@
-import DraggableBoard from "@/components/draggable-board";
+import DraggableBoard from "@/components/board/draggable-board";
 import { Separator } from "@/components/ui/separator";
 
 export default function BoardScreen() {

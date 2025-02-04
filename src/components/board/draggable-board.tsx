@@ -1,51 +1,56 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatSemester } from "@/lib/semester";
-import { personalCoursesAtom } from "@/store/planning";
+import { personalCoursesAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
-import { DndContext, DragOverlay, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
+import { Course } from "@/types/courses";
+import {
+	DndContext,
+	DragEndEvent,
+	DragOverlay,
+	PointerSensor,
+	UniqueIdentifier,
+	useDroppable,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAtom } from "jotai";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-/**
- * Renders the dragged item in the overlay.
- */
-function DragItem({ course }) {
+function DragItem({ course }: { course: Course }) {
 	if (!course) return null;
 	return (
 		<div className="p-2 bg-gray-200 rounded-md shadow-lg cursor-grabbing">
 			<div className="font-medium">{course.name}</div>
-			<div className="text-sm text-gray-600">{course.ects} ECTS</div>
+			<div className="text-sm text-gray-600">
+				{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
+					.filter((e) => e !== false)
+					.join(" | ")}
+			</div>
 		</div>
 	);
 }
 
-/**
- * Wraps each column so that even when empty it registers as a droppable area.
- */
-function DroppableContainer({ id, children }) {
+function DroppableContainer({ id, children }: { id: string; children: React.ReactNode }) {
 	const { setNodeRef, isOver } = useDroppable({ id });
 	return (
-		<div ref={setNodeRef} className={`min-h-[150px] h-full space-y-2 p-2 bg-gray-50 rounded-md ${isOver ? "bg-blue-50" : ""}`}>
+		<div
+			ref={setNodeRef}
+			className={`min-h-[150px] h-full space-y-2 p-2 bg-gray-50 rounded-md ${isOver ? "!bg-blue-50" : ""} transition-colors`}>
 			{children}
 		</div>
 	);
 }
 
-/**
- * Renders a sortable (draggable) item for a course.
- */
-function SortableItem({ course, containerId }) {
+function SortableItem({ course, containerId }: { course: Course; containerId: string }) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: course.id,
 		data: { containerId },
 	});
 
-	// While dragging, hide the original item so only the overlay is visible.
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
@@ -59,55 +64,98 @@ function SortableItem({ course, containerId }) {
 			{...attributes}
 			{...listeners}
 			className="p-2 bg-gray-200 rounded-md shadow-sm cursor-move transition-colors">
-			<div className="font-medium">{course.name}</div>
-			<div className="text-sm text-gray-600">{course.ects} ECTS</div>
+			<div>
+				<div>
+					<div className="font-medium">{course.name}</div>
+					<div className="text-sm text-gray-600">
+						{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
+							.filter((e) => e !== false)
+							.join(" | ")}
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }
 
 export default function DraggableBoard() {
 	const [courses] = useAtom(personalCoursesAtom);
+	const [, planCourse] = useAtom(setPlanningAtom);
 
 	const [startSemester] = useAtom(startingSemesterAtom);
 
-	const [columns, setColumns] = useState({
+	const [columns, setColumns] = useState<Record<string, { id: string; title: string; courses: Course[] }>>({
 		search: {
 			id: "search",
 			title: "Available Courses",
-			courses: courses.map((c) => ({ ...c, id: c.name })),
+			courses: [],
 		},
-		semester1: { id: "semester1", title: `Semester ${formatSemester(1, startSemester)}`, courses: [] },
-		semester2: { id: "semester2", title: `Semester ${formatSemester(2, startSemester)}`, courses: [] },
-		semester3: { id: "semester3", title: `Semester ${formatSemester(3, startSemester)}`, courses: [] },
-		semester4: { id: "semester4", title: `Semester ${formatSemester(4, startSemester)}`, courses: [] },
-		semester5: { id: "semester5", title: `Semester ${formatSemester(5, startSemester)}`, courses: [] },
-		semester6: { id: "semester6", title: `Semester ${formatSemester(6, startSemester)}`, courses: [] },
-		semester7: { id: "semester7", title: `Semester ${formatSemester(7, startSemester)}`, courses: [] },
-		accredited: { id: "semester-accredited", title: "Accredited Courses", courses: [] },
 	});
 
-	// Track the currently dragged course id.
-	const [activeId, setActiveId] = useState(null);
+	useEffect(() => {
+		setColumns({
+			search: {
+				id: "search",
+				title: "Available Courses",
+				courses: courses.filter((course) => !course.plannedSemester),
+			},
+			semester1: {
+				id: "semester1",
+				title: `Semester ${formatSemester(1, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 1),
+			},
+			semester2: {
+				id: "semester2",
+				title: `Semester ${formatSemester(2, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 2),
+			},
+			semester3: {
+				id: "semester3",
+				title: `Semester ${formatSemester(3, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 3),
+			},
+			semester4: {
+				id: "semester4",
+				title: `Semester ${formatSemester(4, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 4),
+			},
+			semester5: {
+				id: "semester5",
+				title: `Semester ${formatSemester(5, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 5),
+			},
+			semester6: {
+				id: "semester6",
+				title: `Semester ${formatSemester(6, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 6),
+			},
+			semester7: {
+				id: "semester7",
+				title: `Semester ${formatSemester(7, startSemester)}`,
+				courses: courses.filter((course) => course.plannedSemester === 7),
+			},
+			accredited: {
+				id: "accredited",
+				title: "Accredited Courses",
+				courses: courses.filter((course) => course.plannedSemester === "accredited"),
+			},
+		});
+	}, [courses, startSemester]);
 
-	// Configure pointer sensor (drag activation after 5px movement).
+	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-	/**
-	 * Helper to find which container holds a course by its id.
-	 */
-	const findContainer = (courseId) => {
+	const findContainer = (courseId: UniqueIdentifier): UniqueIdentifier | null => {
 		for (const containerId in columns) {
-			if (columns[containerId].courses.find((course) => course.id === courseId)) {
+			if (columns[containerId].courses.find((c) => c.name === courseId)) {
 				return containerId;
 			}
 		}
 		return null;
 	};
 
-	/**
-	 * Helper to get the course object from its id.
-	 */
-	const findCourseById = (courseId) => {
+	const findCourseById = (courseId: UniqueIdentifier) => {
 		for (const containerId in columns) {
 			const course = columns[containerId].courses.find((course) => course.id === courseId);
 			if (course) return course;
@@ -115,11 +163,7 @@ export default function DraggableBoard() {
 		return null;
 	};
 
-	/**
-	 * Handles drag end events: determines whether the course was re-ordered
-	 * within the same container or moved between containers.
-	 */
-	const handleDragEnd = (event) => {
+	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
 		if (!over) return;
 
@@ -161,10 +205,17 @@ export default function DraggableBoard() {
 			const newDestCourses = [...destColumn.courses];
 			newDestCourses.splice(destIndex, 0, movingCourse);
 
+			console.log(overContainer, movingCourse);
+
 			setColumns({
 				...columns,
 				[activeContainer]: { ...sourceColumn, courses: newSourceCourses },
 				[overContainer]: { ...destColumn, courses: newDestCourses },
+			});
+			planCourse({
+				name: movingCourse.name,
+				plannedSemester:
+					overContainer === "accredited" ? overContainer : parseInt((overContainer as string).replace("semester", ""), 10),
 			});
 		}
 	};
@@ -178,10 +229,10 @@ export default function DraggableBoard() {
 				setActiveId(null);
 			}}
 			onDragCancel={() => setActiveId(null)}>
-			<div className="grid grid-cols-5 h-full gap-4 p-4">
+			<div className="flex flex-row h-full gap-4 p-4 relative">
 				<div className="grid grid-cols-4 gap-4 col-span-4">
 					{Object.values(columns)
-						.filter((col) => col.id.startsWith("semester"))
+						.filter((col) => !col.id.startsWith("search"))
 						.sort((a, b) => parseInt(a.id.replace("semester", ""), 10) - parseInt(b.id.replace("semester", ""), 10))
 						.map((column) => {
 							const totalEcts = column.courses.reduce((sum, course) => sum + course.ects, 0);
@@ -206,10 +257,8 @@ export default function DraggableBoard() {
 							);
 						})}
 				</div>
-
-				{/* Available Courses */}
-				<ScrollArea className="h-full max-h-screen overflow-y-auto rounded-md p-4 border-2 border-gray-300 bg-white shadow-md">
-					<h2 className="text-xl font-semibold mb-4">Available Courses</h2>
+				<div className="h-screen max-h-screen overflow-y-auto rounded-md p-4 border-2 border-gray-300 bg-white shadow-md sticky top-5 min-w-[300px]">
+					<h2 className="text-xl font-semibold mb-4 ">Available Courses</h2>
 					<DroppableContainer id="search">
 						<SortableContext items={columns.search.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
 							{columns.search.courses.map((course) => (
@@ -217,11 +266,9 @@ export default function DraggableBoard() {
 							))}
 						</SortableContext>
 					</DroppableContainer>
-				</ScrollArea>
+				</div>
 			</div>
-
-			{/* Drag overlay to ensure the dragged item is rendered on top */}
-			<DragOverlay>{activeId ? <DragItem course={findCourseById(activeId)} /> : null}</DragOverlay>
+			<DragOverlay>{activeId ? <DragItem course={findCourseById(activeId)!} /> : null}</DragOverlay>
 		</DndContext>
 	);
 }

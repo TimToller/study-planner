@@ -102,6 +102,6 @@ export const courseGroups: CourseGroup[] = [
 export type CourseName = (typeof courseGroups)[number]["courses"][number]["name"];
 
 export const rawCourses: Course[] = courseGroups.reduce(
-	(acc, group) => acc.concat(group.courses.map((c) => ({ ...c, group: group.name }))),
+	(acc, group) => acc.concat(group.courses.map((c) => ({ ...c, group: group.name, id: c.name }))),
 	[] as Course[]
 );

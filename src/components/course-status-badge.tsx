@@ -26,7 +26,7 @@ export const statusMap = {
 };
 
 interface CourseStatusBadgeProps {
-	plannedSemester?: number;
+	plannedSemester?: number | "accredited";
 	grade?: number;
 }
 export default function CourseStatusBadge({ grade, plannedSemester }: CourseStatusBadgeProps) {
