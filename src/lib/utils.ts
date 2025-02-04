@@ -1,5 +1,5 @@
 import { statusMap } from "@/components/course-status-badge";
-import { Course, Semester } from "@/types/courses";
+import { Semester } from "@/types/courses";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -40,19 +40,19 @@ export const compareSemester = (a: Semester, b: Semester) => {
 
 export const isSameSemester = (a: Semester, b: Semester) => a.year === b.year && a.type === b.type;
 
-export const getCourseStatus = (course: Course) => {
+export const getCourseStatus = (plannedSemester?: number, grade?: number) => {
 	let status: keyof typeof statusMap = "unplanned";
-	if (course.plannedSemester !== undefined) {
+	if (plannedSemester !== undefined) {
 		status = "planned";
 		// const currentSemester = getCurrentSemester();
-		// if (isSameSemester(course.plannedSemester, currentSemester)) {
+		// if (isSameSemester(plannedSemester, currentSemester)) {
 		// 	status = "current";
 		// }
 	}
-	if (course.grade !== undefined) {
+	if (grade !== undefined) {
 		status = "graded";
 	}
-	if (course.grade !== undefined && course.grade > 4) {
+	if (grade !== undefined && grade > 4) {
 		status = "failed";
 	}
 	return status;

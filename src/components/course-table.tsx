@@ -4,7 +4,7 @@ import { searchQueryAtom, selectedGroupsAtom, selectedTypesAtom, sortFieldAtom, 
 import { Course } from "@/types/courses";
 import { useAtom } from "jotai";
 import { Filter } from "lucide-react";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import CourseStatusBadge from "./course-status-badge";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -26,8 +26,6 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 	const [selectedTypes, setSelectedTypes] = useAtom(selectedTypesAtom);
 	const [selectedGroups, setSelectedGroups] = useAtom(selectedGroupsAtom);
 
-	const [, updateGrade] = useAtom(setGradesAtom);
-	const [, updatePlanning] = useAtom(setPlanningAtom);
 	const filteredCourses = useMemo(() => {
 		let filtered = [...courses];
 
@@ -58,8 +56,8 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 		if (sortField) {
 			filtered.sort((a, b) => {
 				if (sortField === "status") {
-					const statusA = getCourseStatus(a);
-					const statusB = getCourseStatus(b);
+					const statusA = getCourseStatus(a.plannedSemester, a.grade);
+					const statusB = getCourseStatus(b.plannedSemester, b.grade);
 					return sortOrder === "asc" ? statusA.localeCompare(statusB) : statusB.localeCompare(statusA);
 				}
 				const aVal = a[sortField] ?? "";
@@ -181,7 +179,7 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 							Available {sortField === "available" && (sortOrder === "asc" ? "↑" : "↓")}
 						</TableHead>
 						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("recommendedSemester")}>
-							Recommended Semester {sortField === "recommendedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
+							Recommended {sortField === "recommendedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
 						</TableHead>
 						<TableHead className="cursor-pointer select-none" onClick={() => handleSort("plannedSemester")}>
 							Planned Semester {sortField === "plannedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
@@ -193,73 +191,92 @@ export default function CourseTable({ courses }: CoursesTableProps) {
 				</TableHeader>
 				<TableBody>
 					{filteredCourses.map((course, idx) => (
-						<TableRow key={idx}>
-							<TableCell>
-								<CourseStatusBadge course={course} />
-							</TableCell>
-							<TableCell>{course.group}</TableCell>
-							<TableCell>{course.type}</TableCell>
-							<TableCell>{course.name}</TableCell>
-							<TableCell>{course.ects}</TableCell>
-							<TableCell>{course.available || "N/A"}</TableCell>
-							<TableCell>{course.recommendedSemester !== null ? course.recommendedSemester : "N/A"}</TableCell>
-							<TableCell>
-								<Select
-									onValueChange={(newSemester) => {
-										updatePlanning({
-											name: course.name,
-											plannedSemester: newSemester === "none" ? undefined : parseInt(newSemester),
-										});
-									}}
-									value={course.plannedSemester?.toString() ?? ""}>
-									<SelectTrigger className="w-[160px]">
-										<SelectValue placeholder="Select a Semester" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											<SelectLabel>Semester</SelectLabel>
-											<SelectItem value="1">1</SelectItem>
-											<SelectItem value="2">2</SelectItem>
-											<SelectItem value="3">3</SelectItem>
-											<SelectItem value="4">4</SelectItem>
-											<SelectItem value="5">5</SelectItem>
-											<SelectItem value="6">6</SelectItem>
-											<SelectItem value="7">7</SelectItem>
-											<SelectItem value="8">8</SelectItem>
-											<SelectItem value="none">None</SelectItem>
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-							</TableCell>
-							<TableCell>
-								<Select
-									onValueChange={(newGrade) => {
-										updateGrade({
-											name: course.name,
-											grade: newGrade === "none" ? undefined : parseInt(newGrade),
-										});
-									}}
-									value={course.grade?.toString() ?? ""}>
-									<SelectTrigger className="w-[150px]">
-										<SelectValue placeholder="Select a grade" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											<SelectLabel>Grades</SelectLabel>
-											<SelectItem value="1">1 (Sehr gut)</SelectItem>
-											<SelectItem value="2">2 (Gut)</SelectItem>
-											<SelectItem value="3">3 (Befriedigend)</SelectItem>
-											<SelectItem value="4">4 (Genügend)</SelectItem>
-											<SelectItem value="5">5 (Nicht Genügend)</SelectItem>
-											<SelectItem value="none">None</SelectItem>
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-							</TableCell>
-						</TableRow>
+						<MemoTableRow key={idx} {...course} />
 					))}
 				</TableBody>
 			</Table>
 		</div>
+	);
+}
+
+const MemoTableRow = React.memo(TableRowElement);
+
+function TableRowElement({
+	ects,
+	group,
+	name,
+	recommendedSemester,
+	type,
+	available,
+	grade,
+	plannedSemester,
+}: Pick<Course, "group" | "type" | "name" | "ects" | "available" | "recommendedSemester" | "plannedSemester" | "grade">) {
+	const [, updateGrade] = useAtom(setGradesAtom);
+	const [, updatePlanning] = useAtom(setPlanningAtom);
+	return (
+		<TableRow>
+			<TableCell>
+				<CourseStatusBadge grade={grade} plannedSemester={plannedSemester} />
+			</TableCell>
+			<TableCell>{group}</TableCell>
+			<TableCell>{type}</TableCell>
+			<TableCell>{name}</TableCell>
+			<TableCell>{ects}</TableCell>
+			<TableCell>{available || "N/A"}</TableCell>
+			<TableCell>{recommendedSemester !== null ? recommendedSemester : "N/A"}</TableCell>
+			<TableCell>
+				<Select
+					onValueChange={(newSemester) => {
+						updatePlanning({
+							name: name,
+							plannedSemester: newSemester === "none" ? undefined : parseInt(newSemester),
+						});
+					}}
+					value={plannedSemester?.toString() ?? ""}>
+					<SelectTrigger className="w-[200px]">
+						<SelectValue placeholder="Select a Semester" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							<SelectLabel>Semester</SelectLabel>
+							<SelectItem value="1">1</SelectItem>
+							<SelectItem value="2">2</SelectItem>
+							<SelectItem value="3">3</SelectItem>
+							<SelectItem value="4">4</SelectItem>
+							<SelectItem value="5">5</SelectItem>
+							<SelectItem value="6">6</SelectItem>
+							<SelectItem value="7">7</SelectItem>
+							<SelectItem value="8">8</SelectItem>
+							<SelectItem value="none">None</SelectItem>
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+			</TableCell>
+			<TableCell>
+				<Select
+					onValueChange={(newGrade) => {
+						updateGrade({
+							name: name,
+							grade: newGrade === "none" ? undefined : parseInt(newGrade),
+						});
+					}}
+					value={grade?.toString() ?? ""}>
+					<SelectTrigger className="w-[200px]">
+						<SelectValue placeholder="Select a grade" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							<SelectLabel>Grades</SelectLabel>
+							<SelectItem value="1">1 (Sehr gut)</SelectItem>
+							<SelectItem value="2">2 (Gut)</SelectItem>
+							<SelectItem value="3">3 (Befriedigend)</SelectItem>
+							<SelectItem value="4">4 (Genügend)</SelectItem>
+							<SelectItem value="5">5 (Nicht Genügend)</SelectItem>
+							<SelectItem value="none">None</SelectItem>
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+			</TableCell>
+		</TableRow>
 	);
 }

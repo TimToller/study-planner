@@ -1,5 +1,4 @@
 import { cn, getCourseStatus } from "@/lib/utils";
-import { Course } from "@/types/courses";
 import { Badge } from "./ui/badge";
 
 export const statusMap = {
@@ -26,10 +25,11 @@ export const statusMap = {
 };
 
 interface CourseStatusBadgeProps {
-	course: Course;
+	plannedSemester?: number;
+	grade?: number;
 }
-export default function CourseStatusBadge({ course }: CourseStatusBadgeProps) {
-	const status = getCourseStatus(course);
+export default function CourseStatusBadge({ grade, plannedSemester }: CourseStatusBadgeProps) {
+	const status = getCourseStatus(plannedSemester, grade);
 	const { title, color } = statusMap[status];
 
 	return <Badge className={cn(color, `hover:${color}/80`)}>{title}</Badge>;
