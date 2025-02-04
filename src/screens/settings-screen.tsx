@@ -4,16 +4,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { rawCourses } from "@/data/courses";
+import { cn } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
 import { exportAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
-import { FileUp } from "lucide-react";
+import { FileUp, Lock } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingsScreen() {
 	const [exportData, importData] = useAtom(exportAtom);
+
+	const [hasBackuped, setHasBackuped] = useState(false);
 
 	const [, setPlanning] = useAtom(planningAtom);
 	const [, setGrading] = useAtom(gradesAtom);
@@ -27,6 +31,7 @@ export default function SettingsScreen() {
 		a.download = "StudyPlanner.json";
 		a.click();
 		URL.revokeObjectURL(url);
+		setHasBackuped(true);
 	};
 
 	const importFile = (file: File | null | undefined) => {
@@ -113,11 +118,11 @@ export default function SettingsScreen() {
 					</Button>
 				</CardContent>
 			</Card>
-			<Card className="">
-				<CardHeader>
+			<Card className={"relative"}>
+				<CardHeader className={cn(!hasBackuped && "blur-sm")}>
 					<CardTitle>Reset</CardTitle>
 				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
+				<CardContent className={cn("flex flex-col gap-4", !hasBackuped && "blur-sm")}>
 					<Button onClick={resetPlanning} variant={"destructive"}>
 						Reset course planning
 					</Button>
@@ -128,6 +133,15 @@ export default function SettingsScreen() {
 						Reset to recommended study plan
 					</Button>
 				</CardContent>
+				{!hasBackuped && (
+					<div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
+						<Lock size={50} />
+						<h2 className="text-center font-bold">Back up (Export) your Data before doing something dangerous!</h2>
+						<Button onClick={() => setHasBackuped(true)} variant={"destructive"}>
+							I like living on the Edge
+						</Button>
+					</div>
+				)}
 			</Card>
 		</section>
 	);
