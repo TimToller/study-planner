@@ -1,6 +1,7 @@
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatSemester, getCourseStatus } from "@/lib/semester";
-import { personalCoursesAtom, setGradesAtom, setPlanningAtom } from "@/store/planning";
+import { setGradesAtom } from "@/store/grades";
+import { personalCoursesAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
 import { searchQueryAtom, selectedGroupsAtom, selectedTypesAtom, sortFieldAtom, sortOrderAtom } from "@/store/tableOptions";
 import { Course } from "@/types/courses";

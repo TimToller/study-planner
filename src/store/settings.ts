@@ -3,7 +3,8 @@ import { Semester } from "@/types/courses";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { toast } from "sonner";
-import { gradesAtom, planningAtom } from "./planning";
+import { gradesAtom } from "./grades";
+import { planningAtom } from "./planning";
 
 export const exportAtom = atom(
 	(get) => {

@@ -1,5 +1,5 @@
 import { statusMap } from "@/components/course-status-badge";
-import { Semester } from "@/types/courses";
+import { CoursePlan, Semester } from "@/types/courses";
 
 export const getCurrentSemester = (): Semester => {
 	const now = new Date();
@@ -28,7 +28,7 @@ export const compareSemester = (a: Semester, b: Semester) => {
 
 export const isSameSemester = (a: Semester, b: Semester) => compareSemester(a, b) === 0;
 
-export const getCourseStatus = (plannedSemester?: number, grade?: number) => {
+export const getCourseStatus = (plannedSemester?: CoursePlan["plannedSemester"], grade?: number) => {
 	let status: keyof typeof statusMap = "unplanned";
 	if (plannedSemester !== undefined) {
 		status = "planned";
