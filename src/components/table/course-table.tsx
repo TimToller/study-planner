@@ -1,22 +1,22 @@
 import { useDebounce } from "@/hooks/useDebounce";
-import { formatSemester, getCourseStatus } from "@/lib/semester";
+import { getCourseStatus } from "@/lib/semester";
 import { getGroupColor } from "@/lib/utils";
 import { setGradesAtom } from "@/store/grades";
 import { personalCoursesAtom, setPlanningAtom } from "@/store/planning";
-import { startingSemesterAtom } from "@/store/settings";
 import { searchQueryAtom, selectedGroupsAtom, selectedTypesAtom, sortFieldAtom, sortOrderAtom } from "@/store/tableOptions";
 import { Course } from "@/types/courses";
 import { useAtom } from "jotai";
 import { Filter } from "lucide-react";
-import React, { useMemo } from "react";
-import CourseStatusBadge from "./course-status-badge";
-import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import React, { useCallback, useMemo } from "react";
+import CourseStatusBadge from "../course-status-badge";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import GradeSelect from "./grade-select";
+import SemesterSelect from "./semester-select";
 
 export default function CourseTable() {
 	const [courses] = useAtom(personalCoursesAtom);
@@ -230,7 +230,19 @@ function TableRowElement({
 	const [, updateGrade] = useAtom(setGradesAtom);
 	const [, updatePlanning] = useAtom(setPlanningAtom);
 
-	const [startingSemester] = useAtom(startingSemesterAtom);
+	const handleGradeChange = useCallback(
+		(newGrade: number | undefined) => {
+			updateGrade({ name, grade: newGrade });
+		},
+		[name, updateGrade]
+	);
+
+	const handleSemesterChange = useCallback(
+		(newSemester: number | undefined) => {
+			updatePlanning({ name, plannedSemester: newSemester });
+		},
+		[name, updatePlanning]
+	);
 
 	return (
 		<TableRow>
@@ -243,56 +255,10 @@ function TableRowElement({
 			<TableCell>{ects}</TableCell>
 			<TableCell>{available || "N/A"}</TableCell>
 			<TableCell>
-				<Select
-					onValueChange={(newSemester) => {
-						updatePlanning({
-							name: name,
-							plannedSemester:
-								newSemester === "none" ? undefined : newSemester === "accredited" ? newSemester : parseInt(newSemester),
-						});
-					}}
-					value={plannedSemester?.toString() ?? ""}>
-					<SelectTrigger className="w-[200px]">
-						<SelectValue placeholder="Select a Semester" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectGroup>
-							<SelectLabel>Semester</SelectLabel>
-							{new Array(8).fill(0).map((_, i) => (
-								<SelectItem key={i} value={(i + 1).toString()}>
-									{formatSemester(i + 1, startingSemester)}
-								</SelectItem>
-							))}
-							<SelectItem value="accredited">Accredited</SelectItem>
-							<SelectItem value="none">None</SelectItem>
-						</SelectGroup>
-					</SelectContent>
-				</Select>
+				<SemesterSelect semester={plannedSemester} onSemesterChange={handleSemesterChange} />
 			</TableCell>
 			<TableCell>
-				<Select
-					onValueChange={(newGrade) => {
-						updateGrade({
-							name: name,
-							grade: newGrade === "none" ? undefined : parseInt(newGrade),
-						});
-					}}
-					value={grade?.toString() ?? ""}>
-					<SelectTrigger className="w-[200px]">
-						<SelectValue placeholder="Select a grade" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectGroup>
-							<SelectLabel>Grades</SelectLabel>
-							<SelectItem value="1">1 (Sehr gut)</SelectItem>
-							<SelectItem value="2">2 (Gut)</SelectItem>
-							<SelectItem value="3">3 (Befriedigend)</SelectItem>
-							<SelectItem value="4">4 (Genügend)</SelectItem>
-							<SelectItem value="5">5 (Nicht Genügend)</SelectItem>
-							<SelectItem value="none">None</SelectItem>
-						</SelectGroup>
-					</SelectContent>
-				</Select>
+				<GradeSelect grade={grade} onGradeChange={handleGradeChange} />
 			</TableCell>
 		</TableRow>
 	);
