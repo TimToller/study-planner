@@ -113,7 +113,7 @@ export default function CourseTable() {
 						<SheetHeader>
 							<SheetTitle>Filters</SheetTitle>
 						</SheetHeader>
-						<div className="p-4 space-y-4">
+						<div className="p-4 space-y-4 text-foreground">
 							<div className="gap-2 flex flex-col">
 								<h4 className="text-sm font-semibold">Course Type</h4>
 								{["UE", "VL", "PR", "SE", "KV"].map((type) => (

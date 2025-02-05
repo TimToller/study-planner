@@ -16,7 +16,7 @@ export default function GradesScreen() {
 	const [{ distinction, moreThanHalfOne, noThree }] = useAtom(passedWithDistinctionAtom);
 
 	return (
-		<section className="h-full grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 grid-rows-4">
+		<section className="h-full grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 grid-rows-4 m-4">
 			<Card>
 				<CardHeader>
 					<CardTitle>Average</CardTitle>

@@ -22,7 +22,7 @@ const SemesterSelect = React.memo(function SemesterSelect({ semester, onSemester
 	return (
 		<Select onValueChange={handleValueChange} value={semester?.toString() ?? ""}>
 			<SelectTrigger className="w-[200px]">
-				<SelectValue placeholder="Select a grade" />
+				<SelectValue placeholder="Select a semester" />
 			</SelectTrigger>
 			<SelectContent>
 				<SelectGroup>

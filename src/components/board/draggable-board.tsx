@@ -25,9 +25,11 @@ import { ScrollArea } from "../ui/scroll-area";
 function DragItem({ course }: { course: Course }) {
 	if (!course) return null;
 	return (
-		<div className="p-2 rounded-md shadow-lg cursor-grabbing" style={{ backgroundColor: getGroupColor(course.group) }}>
+		<div
+			className="p-2 rounded-md shadow-lg cursor-grabbing text-foreground"
+			style={{ backgroundColor: getGroupColor(course.group) }}>
 			<div className="font-medium">{course.name}</div>
-			<div className="text-sm text-gray-600">
+			<div className="text-sm">
 				{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
 					.filter((e) => e !== false)
 					.join(" | ")}
@@ -41,7 +43,9 @@ function DroppableContainer({ id, children }: { id: string; children: React.Reac
 	return (
 		<div
 			ref={setNodeRef}
-			className={`min-h-[150px] h-full space-y-2 p-2 bg-gray-50 rounded-md ${isOver ? "!bg-blue-50" : ""} transition-colors`}>
+			className={`min-h-[150px] h-full space-y-2 p-2 bg-primary-foreground rounded-md ${
+				isOver ? "!bg-secondary" : ""
+			} transition-colors`}>
 			{children}
 		</div>
 	);
@@ -75,7 +79,7 @@ function SortableItem({
 			{...attributes}
 			{...listeners}
 			className={cn(
-				`p-2 rounded-md shadow-sm cursor-move transition-colors`,
+				`p-2 rounded-md shadow-sm cursor-move transition-colors text-foreground`,
 				info && "border-4 border-gray-400",
 				info === "warning" && "border-yellow-400",
 				info === "error" && "border-red-400"
@@ -83,7 +87,7 @@ function SortableItem({
 			<div>
 				<div>
 					<div className="font-medium">{course.name}</div>
-					<div className="text-sm text-gray-600">
+					<div className="text-sm">
 						{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
 							.filter((e) => e !== false)
 							.join(" | ")}
@@ -264,11 +268,11 @@ export default function DraggableBoard() {
 						.map((column) => {
 							const totalEcts = column.courses.reduce((sum, course) => sum + course.ects, 0);
 							return (
-								<Card key={column.id} className="bg-white shadow-md flex flex-col">
+								<Card key={column.id} className="shadow-md flex flex-col">
 									<CardHeader className="flex items-center justify-between">
 										<CardTitle className="text-lg font-semibold">
 											{column.title}
-											{totalEcts > 0 && <span className="ml-2 text-sm text-gray-600">(ECTS: {totalEcts})</span>}
+											{totalEcts > 0 && <span className="ml-2 text-sm text-secondary-foreground">(ECTS: {totalEcts})</span>}
 										</CardTitle>
 									</CardHeader>
 									<CardContent className="h-full">
@@ -284,9 +288,9 @@ export default function DraggableBoard() {
 							);
 						})}
 				</div>
-				<div className="h-[95vh] rounded-md p-2 border-2 border-gray-300 bg-white shadow-md sticky top-2 bottom-2 min-w-[300px]">
+				<div className="h-[95vh] rounded-md p-2 border-2 shadow-md sticky top-2 bottom-2 min-w-[300px]">
 					<ScrollArea className="h-full p-2">
-						<h2 className="text-xl font-semibold mb-4 ">Available Courses</h2>
+						<h2 className="text-xl font-semibold mb-4 text-foreground">Available Courses</h2>
 						<DroppableContainer id="search">
 							<SortableContext items={columns.search.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
 								{columns.search.courses.map((course) => (

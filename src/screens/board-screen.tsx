@@ -18,7 +18,7 @@ export default function BoardScreen() {
 				<DraggableBoard />
 			</div>
 			<Separator />
-			<div className="flex items-center space-x-2">
+			<div className="flex items-center space-x-2 text-foreground">
 				<Label htmlFor="ignore-graded">Ignore Graded Courses</Label>
 				<Switch id="ignore-graded" checked={ignoreGraded} onCheckedChange={(c) => setIgnoreGraded(c)} />
 			</div>
@@ -62,7 +62,7 @@ function InfoWrapper({
 }) {
 	if (!items.length) return null;
 	return (
-		<div>
+		<div className="text-foreground">
 			<h3 className={cn("text-xl font-bold", textClassName)}>
 				{items.length} {groupTitle}
 			</h3>

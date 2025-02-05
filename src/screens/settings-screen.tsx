@@ -1,3 +1,4 @@
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -63,7 +64,7 @@ export default function SettingsScreen() {
 	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
 	return (
-		<section className="h-full grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 grid-rows-4">
+		<section className="h-full grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 grid-rows-4 m-4">
 			<Card className="">
 				<CardHeader>
 					<CardTitle>Starting Semester</CardTitle>
@@ -116,6 +117,15 @@ export default function SettingsScreen() {
 					<Button onClick={exportFile}>
 						<FileUp /> Export
 					</Button>
+				</CardContent>
+			</Card>
+			<Card className="">
+				<CardHeader>
+					<CardTitle>Theming</CardTitle>
+				</CardHeader>
+				<CardContent className="gap-4 flex flex-row items-center">
+					<Label htmlFor="mode-toggle">Dark Mode</Label>
+					<ModeToggle />
 				</CardContent>
 			</Card>
 			<Card className={"relative"}>
