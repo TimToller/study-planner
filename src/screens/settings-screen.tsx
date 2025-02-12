@@ -4,24 +4,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { rawCourses } from "@/data/courses";
 import { cn } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
-import { exportAtom, startingSemesterAtom } from "@/store/settings";
+import {exportAtom, programAtom, rawCoursesAtom, startingSemesterAtom} from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
-import { FileUp, Lock } from "lucide-react";
+import { FileUp, Lock, OctagonAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {ProgramToggle} from "@/components/program-toggle.tsx";
 
 export default function SettingsScreen() {
+	const [rawCourses] = useAtom(rawCoursesAtom);
+
 	const [exportData, importData] = useAtom(exportAtom);
 
+	const [wantsChangeProgram, setWantsChangeProgram] = useState(false);
 	const [hasBackuped, setHasBackuped] = useState(false);
 
 	const [, setPlanning] = useAtom(planningAtom);
 	const [, setGrading] = useAtom(gradesAtom);
+	const [program, ] = useAtom(programAtom);
 
 	const exportFile = () => {
 		const data = JSON.stringify(exportData);
@@ -57,6 +61,7 @@ export default function SettingsScreen() {
 
 	const resetToRecommended = () => {
 		setPlanning(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })));
+		console.log(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })))
 		setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
 		toast.success("Successfully reset to recommended study plan");
 	};
@@ -127,6 +132,27 @@ export default function SettingsScreen() {
 					<Label htmlFor="mode-toggle">Dark Mode</Label>
 					<ModeToggle />
 				</CardContent>
+			</Card>
+			<Card className={"relative"}>
+				<CardHeader className={cn(!wantsChangeProgram && "blur-sm")}>
+					<CardTitle>Change Program</CardTitle>
+				</CardHeader>
+				<CardContent className={cn("flex flex-col gap-4", !wantsChangeProgram && "blur-sm")}>
+					<Label htmlFor="program-toggle" className="sr-only">Bachelor's Program</Label>
+					<ProgramToggle />
+				</CardContent>
+				{!wantsChangeProgram && (
+					<div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
+						<OctagonAlert size={50} />
+						<h2 className="text-center font-bold m-2">
+							Changing your Bachelor's Program will reset your data!
+							Back up (Export) your Data before abandoning your current program!
+						</h2>
+						<Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
+							I have enough of { program }!
+						</Button>
+					</div>
+				)}
 			</Card>
 			<Card className={"relative"}>
 				<CardHeader className={cn(!hasBackuped && "blur-sm")}>

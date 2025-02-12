@@ -40,7 +40,8 @@ Notice this is not a promise, but a list of possible features that could be adde
 - [x] Basic settings
 - [ ] Add Area of Specialization & Free Electives
 - [ ] Review dependencies, courses etc. for accurate information
-- [ ] Add more/different study programs with dependencies(CS)
+- [ ] Add more/different study programs with dependencies
+  - [x] CS 
 - [ ] Better graphs for progress
 - [ ] Better Theming/colors
 - [ ] Links/References to kusss, moodle etc.
