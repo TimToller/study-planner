@@ -8,20 +8,23 @@ import { rawCourses } from "@/data/courses";
 import { cn } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
-import { exportAtom, startingSemesterAtom } from "@/store/settings";
+import {exportAtom, programmAtom, startingSemesterAtom} from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
-import { FileUp, Lock } from "lucide-react";
+import { FileUp, Lock, OctagonAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {ProgrammToggle} from "@/components/programm-toggle.tsx";
 
 export default function SettingsScreen() {
 	const [exportData, importData] = useAtom(exportAtom);
 
+	const [wantsChangeProgramm, setWantsChangeProgram] = useState(false);
 	const [hasBackuped, setHasBackuped] = useState(false);
 
 	const [, setPlanning] = useAtom(planningAtom);
 	const [, setGrading] = useAtom(gradesAtom);
+	const [programm, ] = useAtom(programmAtom);
 
 	const exportFile = () => {
 		const data = JSON.stringify(exportData);
@@ -127,6 +130,27 @@ export default function SettingsScreen() {
 					<Label htmlFor="mode-toggle">Dark Mode</Label>
 					<ModeToggle />
 				</CardContent>
+			</Card>
+			<Card className={"relative"}>
+				<CardHeader className={cn(!wantsChangeProgramm && "blur-sm")}>
+					<CardTitle>Change Programm</CardTitle>
+				</CardHeader>
+				<CardContent className={cn("flex flex-col gap-4", !wantsChangeProgramm && "blur-sm")}>
+					<Label htmlFor="programm-toggle" className="sr-only">Bachelor's Programm</Label>
+					<ProgrammToggle />
+				</CardContent>
+				{!wantsChangeProgramm && (
+					<div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
+						<OctagonAlert size={50} />
+						<h2 className="text-center font-bold m-2">
+							Changing your Bachelor's programm will reset your data!
+							Back up (Export) your Data before abandoning your current programm!
+						</h2>
+						<Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
+							I have enough of { programm }!
+						</Button>
+					</div>
+				)}
 			</Card>
 			<Card className={"relative"}>
 				<CardHeader className={cn(!hasBackuped && "blur-sm")}>

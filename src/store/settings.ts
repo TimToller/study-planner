@@ -33,9 +33,17 @@ export const exportAtom = atom(
 	}
 );
 
-export const settingsAtom = atomWithStorage("settings", {
+export type Programm = "AI" | "CS";
+export type Settings = {
+	startingSemester: Semester,
+	ignoreGraded: boolean,
+	programm: Programm,
+}
+
+export const settingsAtom = atomWithStorage<Settings>("settings", {
 	startingSemester: getCurrentSemester(),
 	ignoreGraded: false,
+	programm: "AI"
 });
 
 export const startingSemesterAtom = atom(
@@ -52,3 +60,10 @@ export const ignoreGradedAtom = atom(
 		set(settingsAtom, { ...get(settingsAtom), ignoreGraded: value });
 	}
 );
+
+export const programmAtom = atom(
+	(get) => get(settingsAtom).programm,
+	(get, set, value: Programm) => {
+		set(settingsAtom, { ...get(settingsAtom), programm: value });
+	}
+)
