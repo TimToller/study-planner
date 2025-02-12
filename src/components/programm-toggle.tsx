@@ -28,7 +28,7 @@ export function ProgrammToggle() {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger className="w-full">
+            <DropdownMenuTrigger className="w-full" asChild>
                 <Button variant="destructive" className="w-full">
                     <span>Change Programm (Resets all data)</span>
                 </Button>
