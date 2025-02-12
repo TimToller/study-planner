@@ -23,18 +23,25 @@ export const getGroupColor = (group: string) => {
 	switch (group) {
 		case "Bachelor Thesis":
 		case "AI Basics and Practical Training":
+		case "Propaedeutic":
 			return colorPalate[0];
 		case "AI and Society":
+		case "Theory":
 			return colorPalate[1];
 		case "Computer Science":
+		case "Hardware":
 			return colorPalate[2];
 		case "Data Science":
+		case "Software":
 			return colorPalate[3];
 		case "Knowledge Representation and Reasoning":
+		case "Systems":
 			return colorPalate[4];
 		case "Machine Learning and Perception":
+		case "Applications":
 			return colorPalate[5];
 		case "Mathematics":
+		case "Complementary Skills":
 			return colorPalate[6];
 	}
 };

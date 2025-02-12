@@ -3,8 +3,8 @@ export interface Semester {
 	year: number;
 	type: SemesterType;
 }
-export interface Course {
-	name: string;
+export interface Course<Name extends string> {
+	name: Name;
 	ects: number;
 	id: string;
 	available?: SemesterType;
@@ -16,9 +16,9 @@ export interface Course {
 	notUsedForDistinction?: boolean;
 }
 
-export interface CourseGroup {
+export interface CourseGroup<Name extends string> {
 	name: string;
-	courses: Omit<Course, "group", "id">[];
+	courses: Omit<Course<Name>, "group", "id", "fullName">[];
 }
 
 export interface CourseGrading {

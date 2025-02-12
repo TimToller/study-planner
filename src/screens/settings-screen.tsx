@@ -4,11 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { rawCourses } from "@/data/courses";
 import { cn } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
-import {exportAtom, programmAtom, startingSemesterAtom} from "@/store/settings";
+import {exportAtom, programmAtom, rawCoursesAtom, startingSemesterAtom} from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
 import { FileUp, Lock, OctagonAlert } from "lucide-react";
@@ -17,6 +16,8 @@ import { toast } from "sonner";
 import {ProgrammToggle} from "@/components/programm-toggle.tsx";
 
 export default function SettingsScreen() {
+	const [rawCourses] = useAtom(rawCoursesAtom);
+
 	const [exportData, importData] = useAtom(exportAtom);
 
 	const [wantsChangeProgramm, setWantsChangeProgram] = useState(false);
@@ -60,6 +61,7 @@ export default function SettingsScreen() {
 
 	const resetToRecommended = () => {
 		setPlanning(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })));
+		console.log(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })))
 		setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
 		toast.success("Successfully reset to recommended study plan");
 	};

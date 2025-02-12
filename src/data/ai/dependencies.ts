@@ -1,46 +1,7 @@
-type DependencyType = "hard" | "soft" | "recommended";
-interface Dependency {
-	name: CourseName;
-	type: DependencyType;
-}
+import {Dependencies} from "@/types/dependencies";
+import {CourseName} from "@/data/ai/courses";
 
-export type CourseName =
-	| "Hands-on AI I"
-	| "Introduction to AI"
-	| "Lecture Series Artificial Intelligence"
-	| "Responsible AI"
-	| "Programming in Python I"
-	| "Logic"
-	| "Mathematics for AI I"
-	| "Hands-on AI II"
-	| "Technology and Society"
-	| "Programming in Python II"
-	| "Algorithms and Data Structures I"
-	| "Statistics for AI"
-	| "Mathematics for AI II"
-	| "Artificial Intelligence"
-	| "Algorithms and Data Structures II"
-	| "Machine Learning: Basic Techniques"
-	| "Visualization"
-	| "Machine Learning: Supervised Techniques"
-	| "Mathematics for AI III"
-	| "Seminar in AI"
-	| "Learning from User-generated Data"
-	| "Computational Data Analytics"
-	| "Formal Models"
-	| "Machine Learning: Unsupervised Techniques"
-	| "Machine Learning and Pattern Classification"
-	| "Numerical Optimization"
-	| "Practical Work in AI"
-	| "Introduction to Computational Statistics"
-	| "Natural Language Processing"
-	| "Computational Logics for AI"
-	| "Reinforcement Learning"
-	| "Gender Studies"
-	| "Digital Signal Processing"
-	| "Bachelor Thesis";
-
-export const dependencies: { name: CourseName; dependencies: Dependency[] }[] = [
+export const dependencies: Dependencies<CourseName> = [
 	{
 		name: "Hands-on AI II",
 		dependencies: [

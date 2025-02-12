@@ -1,8 +1,8 @@
-import { courseGroups, rawCourses } from "@/data/courses";
 import { round, weightedAverage } from "@/lib/utils";
 import { CourseGrading } from "@/types/courses";
-import { atom } from "jotai";
+import {atom} from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import {courseGroupsAtom, rawCoursesAtom} from "@/store/settings.ts";
 
 export const gradesAtom = atomWithStorage<CourseGrading[]>("grades", []);
 
@@ -28,28 +28,31 @@ export const setGradesAtom = atom(null, (get, set, course: CourseGrading | { nam
 	}
 });
 
-const ectsMap = new Map<string, number>();
+const ectsMapAtom = atom((get) => {
+	const ectsMap = new Map<string, number>();
+	get(rawCoursesAtom).forEach((c) => ectsMap.set(c.name, c.ects));
+	return ectsMap
+})
 
-rawCourses.forEach((c) => ectsMap.set(c.name, c.ects));
 export const courseGradeAverageAtom = atom((get) => {
 	const grades = get(gradesAtom).filter((g) => g.grade !== undefined);
-	const average = weightedAverage(grades.map((g) => ({ number: g.grade, weight: ectsMap.get(g.name) ?? 0 })));
+	const average = weightedAverage(grades.map((g) => ({ number: g.grade, weight: get(ectsMapAtom).get(g.name) ?? 0 })));
 	return isNaN(average) ? undefined : average;
 });
 
 export const groupGradesAverageAtom = atom((get) => {
 	const grades = get(gradesAtom).filter((g) => g.grade !== undefined);
 
-	return courseGroups.map((group) => ({
+	return get(courseGroupsAtom).map((group) => ({
 		name: group.name,
 		average: weightedAverage(
 			grades
-				.filter((g) => group.courses.some((c) => c.name === g.name))
-				.map((g) => ({ number: g.grade, weight: ectsMap.get(g.name) ?? 0 }))
+				.filter((g) => group.courses.some((c) => `${c.type} ${c.name}` === g.name))
+				.map((g) => ({ number: g.grade, weight: get(ectsMapAtom).get(g.name) ?? 0 }))
 		),
 		totalECTS: group.courses.map((c) => c.ects).reduce((a, b) => a + b, 0),
 		gradedECTS: group.courses
-			.filter((c) => grades.some((g) => g.name === c.name))
+			.filter((c) => grades.some((g) => g.name === `${c.type} ${c.name}`))
 			.map((c) => c.ects)
 			.reduce((a, b) => a + b, 0),
 	}));

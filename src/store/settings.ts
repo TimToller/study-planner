@@ -1,10 +1,17 @@
 import { getCurrentSemester } from "@/lib/semester";
-import { Semester } from "@/types/courses";
+import {Course, CourseGroup, Semester} from "@/types/courses";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { toast } from "sonner";
 import { gradesAtom } from "./grades";
 import { planningAtom } from "./planning";
+
+import { courseGroups as aiCourseGroups, rawCourses as aiRawCourses } from "@/data/ai/courses";
+import { dependencies as aiDependencies} from "@/data/ai/dependencies.ts";
+
+import { courseGroups as csCourseGroups, rawCourses as csRawCourses } from "@/data/cs/courses.ts";
+import { dependencies as csDependencies } from "@/data/cs/dependencies.ts";
+import {Dependencies} from "@/types/dependencies";
 
 export const exportAtom = atom(
 	(get) => {
@@ -66,4 +73,16 @@ export const programmAtom = atom(
 	(get, set, value: Programm) => {
 		set(settingsAtom, { ...get(settingsAtom), programm: value });
 	}
+)
+
+export const courseGroupsAtom = atom<CourseGroup<string>[]>(
+	(get) => get(programmAtom) == "AI" ? aiCourseGroups : csCourseGroups,
+)
+
+export const rawCoursesAtom = atom<Course<string>[]>(
+	(get) => get(programmAtom) == "AI" ? aiRawCourses : csRawCourses,
+)
+
+export const dependenciesAtom = atom<Dependencies<string>>(
+	(get) => get(programmAtom) == "AI" ? aiDependencies : csDependencies,
 )

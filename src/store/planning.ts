@@ -1,12 +1,10 @@
-import { rawCourses } from "@/data/courses";
 import { Course, CoursePlan } from "@/types/courses";
 
-import { dependencies } from "@/data/dependencies";
 import { getSemester } from "@/lib/semester";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { gradesAtom } from "./grades";
-import { ignoreGradedAtom, startingSemesterAtom } from "./settings";
+import {dependenciesAtom, ignoreGradedAtom, rawCoursesAtom, startingSemesterAtom} from "./settings";
 
 export const planningAtom = atomWithStorage<CoursePlan[]>("semester-plans", []);
 
@@ -35,7 +33,7 @@ export const personalCoursesAtom = atom((get) => {
 	const grades = get(gradesAtom);
 	const planning = get(planningAtom);
 
-	return rawCourses.map((c) => ({
+	return get(rawCoursesAtom).map((c) => ({
 		...c,
 		grade: grades.find((p) => p.name === c.name)?.grade,
 		plannedSemester: planning.find((p) => p.name === c.name)?.plannedSemester,
@@ -44,7 +42,7 @@ export const personalCoursesAtom = atom((get) => {
 
 export interface PlanningInfo {
 	message: string;
-	courses?: Course[];
+	courses?: Course<string>[];
 }
 export const planningInfoAtom = atom((get) => {
 	const planning = get(planningAtom);
@@ -60,7 +58,7 @@ export const planningInfoAtom = atom((get) => {
 
 	planning.forEach((course) => {
 		//Errors
-		const courseData = rawCourses.find((c) => c.name === course.name)!;
+		const courseData = get(rawCoursesAtom).find((c) => c.name === course.name)!;
 
 		if (course.plannedSemester === undefined || course.plannedSemester === "accredited") {
 			return;
@@ -90,21 +88,21 @@ export const planningInfoAtom = atom((get) => {
 				(p) =>
 					p.name.slice(3) === course.name.slice(3) &&
 					p.plannedSemester !== "accredited" &&
-					rawCourses.find((c) => c.name === p.name)!.type === "VL"
+					get(rawCoursesAtom).find((c) => c.name === p.name)!.type === "VL"
 			);
 
 			if (courseVL && course.plannedSemester !== courseVL.plannedSemester) {
 				warnings.push({
 					message: `Course **${course.name}** should ideally be taken in the same semester as the lecture`,
-					courses: rawCourses.filter((c) => c.name.slice(3) === courseVL.name.slice(3)),
+					courses: get(rawCoursesAtom).filter((c) => c.name.slice(3) === courseVL.name.slice(3)),
 				});
 			}
 		}
 
 		//check dependencies
-		const courseDependencies = dependencies.find((d) => d.name === course.name.slice(3))?.dependencies || [];
+		const courseDependencies = get(dependenciesAtom).find((d) => d.name === course.name.slice(3))?.dependencies || [];
 		for (const dependency of courseDependencies) {
-			const requiredCourses = rawCourses.filter((c) => c.name.slice(3) === dependency.name);
+			const requiredCourses = get(rawCoursesAtom).filter((c) => c.name.slice(3) === dependency.name);
 			const missingCourses = requiredCourses.filter(
 				(c) =>
 					!planning.some(
