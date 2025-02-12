@@ -69,7 +69,7 @@ export const ignoreGradedAtom = atom(
 );
 
 export const programmAtom = atom(
-	(get) => get(settingsAtom).programm,
+	(get) => get(settingsAtom).programm ?? "AI",
 	(get, set, value: Programm) => {
 		set(settingsAtom, { ...get(settingsAtom), programm: value });
 	}
