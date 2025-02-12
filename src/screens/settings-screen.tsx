@@ -7,25 +7,25 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
-import {exportAtom, programmAtom, rawCoursesAtom, startingSemesterAtom} from "@/store/settings";
+import {exportAtom, programAtom, rawCoursesAtom, startingSemesterAtom} from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
 import { FileUp, Lock, OctagonAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {ProgrammToggle} from "@/components/programm-toggle.tsx";
+import {ProgramToggle} from "@/components/program-toggle.tsx";
 
 export default function SettingsScreen() {
 	const [rawCourses] = useAtom(rawCoursesAtom);
 
 	const [exportData, importData] = useAtom(exportAtom);
 
-	const [wantsChangeProgramm, setWantsChangeProgram] = useState(false);
+	const [wantsChangeProgram, setWantsChangeProgram] = useState(false);
 	const [hasBackuped, setHasBackuped] = useState(false);
 
 	const [, setPlanning] = useAtom(planningAtom);
 	const [, setGrading] = useAtom(gradesAtom);
-	const [programm, ] = useAtom(programmAtom);
+	const [program, ] = useAtom(programAtom);
 
 	const exportFile = () => {
 		const data = JSON.stringify(exportData);
@@ -134,22 +134,22 @@ export default function SettingsScreen() {
 				</CardContent>
 			</Card>
 			<Card className={"relative"}>
-				<CardHeader className={cn(!wantsChangeProgramm && "blur-sm")}>
-					<CardTitle>Change Programm</CardTitle>
+				<CardHeader className={cn(!wantsChangeProgram && "blur-sm")}>
+					<CardTitle>Change Program</CardTitle>
 				</CardHeader>
-				<CardContent className={cn("flex flex-col gap-4", !wantsChangeProgramm && "blur-sm")}>
-					<Label htmlFor="programm-toggle" className="sr-only">Bachelor's Programm</Label>
-					<ProgrammToggle />
+				<CardContent className={cn("flex flex-col gap-4", !wantsChangeProgram && "blur-sm")}>
+					<Label htmlFor="program-toggle" className="sr-only">Bachelor's Program</Label>
+					<ProgramToggle />
 				</CardContent>
-				{!wantsChangeProgramm && (
+				{!wantsChangeProgram && (
 					<div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
 						<OctagonAlert size={50} />
 						<h2 className="text-center font-bold m-2">
-							Changing your Bachelor's programm will reset your data!
-							Back up (Export) your Data before abandoning your current programm!
+							Changing your Bachelor's Program will reset your data!
+							Back up (Export) your Data before abandoning your current program!
 						</h2>
 						<Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
-							I have enough of { programm }!
+							I have enough of { program }!
 						</Button>
 					</div>
 				)}

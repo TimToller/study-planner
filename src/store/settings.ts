@@ -40,17 +40,17 @@ export const exportAtom = atom(
 	}
 );
 
-export type Programm = "AI" | "CS";
+export type Program = "AI" | "CS";
 export type Settings = {
 	startingSemester: Semester,
 	ignoreGraded: boolean,
-	programm: Programm,
+	program: Program,
 }
 
 export const settingsAtom = atomWithStorage<Settings>("settings", {
 	startingSemester: getCurrentSemester(),
 	ignoreGraded: false,
-	programm: "AI"
+	program: "AI"
 });
 
 export const startingSemesterAtom = atom(
@@ -68,21 +68,21 @@ export const ignoreGradedAtom = atom(
 	}
 );
 
-export const programmAtom = atom(
-	(get) => get(settingsAtom).programm ?? "AI",
-	(get, set, value: Programm) => {
-		set(settingsAtom, { ...get(settingsAtom), programm: value });
+export const programAtom = atom(
+	(get) => get(settingsAtom).program ?? "AI",
+	(get, set, value: Program) => {
+		set(settingsAtom, { ...get(settingsAtom), program: value });
 	}
 )
 
 export const courseGroupsAtom = atom<CourseGroup<string>[]>(
-	(get) => get(programmAtom) == "AI" ? aiCourseGroups : csCourseGroups,
+	(get) => get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
 )
 
 export const rawCoursesAtom = atom<Course<string>[]>(
-	(get) => get(programmAtom) == "AI" ? aiRawCourses : csRawCourses,
+	(get) => get(programAtom) == "AI" ? aiRawCourses : csRawCourses,
 )
 
 export const dependenciesAtom = atom<Dependencies<string>>(
-	(get) => get(programmAtom) == "AI" ? aiDependencies : csDependencies,
+	(get) => get(programAtom) == "AI" ? aiDependencies : csDependencies,
 )
