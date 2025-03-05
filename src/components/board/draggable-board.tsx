@@ -261,7 +261,7 @@ export default function DraggableBoard() {
 			}}
 			onDragCancel={() => setActiveId(null)}>
 			<div className="flex flex-row h-full gap-4 p-4 relative">
-				<div className="grid grid-cols-4 gap-4 col-span-4 w-full">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
 					{Object.values(columns)
 						.filter((col) => !col.id.startsWith("search"))
 						.sort((a, b) => parseInt(a.id.replace("semester", ""), 10) - parseInt(b.id.replace("semester", ""), 10))
