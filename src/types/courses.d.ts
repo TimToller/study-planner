@@ -30,3 +30,10 @@ export interface CoursePlan {
 	name: string;
 	plannedSemester?: number | "accredited";
 }
+
+export interface CustomCourse {
+	name: string;
+	variant: "Free Elective" | "Area of Specialization";
+	ects: number;
+	type: "UE" | "VL" | "PR" | "SE" | "KV";
+}

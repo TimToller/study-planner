@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatSemester } from "@/lib/semester";
 import { cn, getGroupColor } from "@/lib/utils";
+import { customCoursesAtom } from "@/store/customCourses";
 import { personalCoursesAtom, planningInfoAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
 import { Course } from "@/types/courses";
@@ -19,8 +20,11 @@ import {
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAtom } from "jotai";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import CustomCourseForm from "./custom-course-form";
 
 function DragItem({ course }: { course: Course }) {
 	if (!course) return null;
@@ -30,8 +34,13 @@ function DragItem({ course }: { course: Course }) {
 			style={{ backgroundColor: getGroupColor(course.group) }}>
 			<div className="font-medium">{course.name}</div>
 			<div className="text-sm">
-				{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
-					.filter((e) => e !== false)
+				{[
+					`${course.ects} ECTS`,
+					course.available,
+					course.grade !== undefined && `Grade: ${course.grade}`,
+					(course.group === "Free Elective" || course.group === "Area of Specialization") && course.group,
+				]
+					.filter((e) => e !== false && e !== undefined)
 					.join(" | ")}
 			</div>
 		</div>
@@ -56,7 +65,7 @@ function SortableItem({
 	containerId,
 	info,
 }: {
-	course: Course;
+	course: Course<string>;
 	containerId: string;
 	info?: "error" | "warning" | "recommendation";
 }) {
@@ -64,6 +73,12 @@ function SortableItem({
 		id: course.id,
 		data: { containerId },
 	});
+
+	const [_, setCustomCourses] = useAtom(customCoursesAtom);
+
+	const removeCustomCourse = (id: string) => {
+		setCustomCourses((prev) => prev.filter((course) => `${course.type} ${course.name}` !== id));
+	};
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -84,15 +99,29 @@ function SortableItem({
 				info === "warning" && "border-yellow-400",
 				info === "error" && "border-red-400"
 			)}>
-			<div>
+			<div className="relative">
 				<div>
 					<div className="font-medium">{course.name}</div>
 					<div className="text-sm">
-						{[`${course.ects} ECTS`, course.available, course.grade !== undefined && `Grade: ${course.grade}`]
-							.filter((e) => e !== false)
+						{[
+							`${course.ects} ECTS`,
+							course.available,
+							course.grade !== undefined && `Grade: ${course.grade}`,
+							(course.group === "Free Elective" || course.group === "Area of Specialization") && course.group,
+						]
+							.filter((e) => e !== false && e !== undefined)
 							.join(" | ")}
 					</div>
 				</div>
+				{(course.group === "Free Elective" || course.group === "Area of Specialization") && (
+					<Button
+						size={"icon"}
+						variant={"destructive"}
+						className="w-4 h-4 absolute -top-2 -right-2"
+						onClick={() => removeCustomCourse(course.id)}>
+						<X />
+					</Button>
+				)}
 			</div>
 		</div>
 	);
@@ -298,6 +327,7 @@ export default function DraggableBoard() {
 								))}
 							</SortableContext>
 						</DroppableContainer>
+						<CustomCourseForm />
 					</ScrollArea>
 				</div>
 			</div>
