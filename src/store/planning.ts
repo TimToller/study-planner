@@ -4,7 +4,7 @@ import { getSemester } from "@/lib/semester";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { gradesAtom } from "./grades";
-import {dependenciesAtom, ignoreGradedAtom, rawCoursesAtom, startingSemesterAtom} from "./settings";
+import { dependenciesAtom, ignoreGradedAtom, rawCoursesAtom, startingSemesterAtom } from "./settings";
 
 export const planningAtom = atomWithStorage<CoursePlan[]>("semester-plans", []);
 
@@ -56,6 +56,9 @@ export const planningInfoAtom = atom((get) => {
 
 	const semesterECTSMap = new Map<string, number>();
 
+	let freeElectiveECTS = 0;
+	let aosECTS = 0;
+
 	planning.forEach((course) => {
 		//Errors
 		const courseData = get(rawCoursesAtom).find((c) => c.name === course.name)!;
@@ -97,6 +100,12 @@ export const planningInfoAtom = atom((get) => {
 					courses: get(rawCoursesAtom).filter((c) => c.name.slice(3) === courseVL.name.slice(3)),
 				});
 			}
+		}
+
+		if (courseData.group === "Free Elective") {
+			freeElectiveECTS += courseData.ects;
+		} else if (courseData.group === "Area of Specialization") {
+			aosECTS += courseData.ects;
 		}
 
 		//check dependencies
@@ -145,6 +154,22 @@ export const planningInfoAtom = atom((get) => {
 			});
 		}
 	});
+
+	if (freeElectiveECTS < 9) {
+		recommendations.push({
+			message: `You have only **${freeElectiveECTS} ECTS** of free electives planned. You should still have to do **${
+				9 - freeElectiveECTS
+			} ECTS** of free electives.`,
+		});
+	}
+
+	if (aosECTS < 12) {
+		recommendations.push({
+			message: `You have only **${aosECTS} ECTS** of area of specialization planned. You should still have to do **${
+				12 - aosECTS
+			} ECTS** of area of specialization.`,
+		});
+	}
 
 	return { errors, warnings, recommendations };
 });

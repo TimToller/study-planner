@@ -74,9 +74,11 @@ function SortableItem({
 		data: { containerId },
 	});
 
-	const [_, setCustomCourses] = useAtom(customCoursesAtom);
+	const [, setCustomCourses] = useAtom(customCoursesAtom);
+	const [, updatePlanning] = useAtom(setPlanningAtom);
 
 	const removeCustomCourse = (id: string) => {
+		updatePlanning({ name: id, plannedSemester: undefined });
 		setCustomCourses((prev) => prev.filter((course) => `${course.type} ${course.name}` !== id));
 	};
 
