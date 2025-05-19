@@ -1,4 +1,6 @@
+import CourseFocus from "@/components/course-focus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { average, round } from "@/lib/utils";
 import {
 	courseGradeAverageAtom,
@@ -57,23 +59,36 @@ export default function GradesScreen() {
 			{groupGradesAverage.map(({ average, gradedECTS, name, totalECTS }) => (
 				<Card>
 					<CardHeader>
+						<div className="flex flex-col gap-2">
+							<div className="flex justify-between items-center">
+								<span className="text-sm font-medium">ECTS</span>
+								<span className="text-sm font-medium">
+									{gradedECTS}/{totalECTS} ({round((gradedECTS / totalECTS) * 100)}%)
+								</span>
+							</div>
+							<Progress
+								value={round((gradedECTS / totalECTS) * 100)}
+								className={"w-full"}
+								indicatorColor={(gradedECTS >= totalECTS && "bg-green-500") || undefined}
+							/>
+						</div>
 						<CardTitle className="text-lg">{name}</CardTitle>
 					</CardHeader>
-					<CardContent className="flex flex-col gap-4">
-						<div className="flex flex-row justify-between">
-							<h2 className="text-lg">Average Grade:</h2>
-							<h3 className="text-lg font-bold">{round(average) || "-"}</h3>
+					<CardContent className="flex flex-col gap-4 justify-between">
+						<div className="">
+							<div className="flex flex-row justify-between">
+								<h2 className="text-lg">Average Grade:</h2>
+								<h3 className="text-lg font-bold">{round(average) || "-"}</h3>
+							</div>
+							<div className="flex flex-row justify-between">
+								<h2 className="text-lg">Rounded Grade:</h2>
+								<h3 className="text-lg font-bold">{round(average, 0) || "-"}</h3>
+							</div>
 						</div>
-						<div className="flex flex-row justify-between">
-							<h2 className="text-lg">Rounded Grade:</h2>
-							<h3 className="text-lg font-bold">{round(average, 0) || "-"}</h3>
-						</div>
-						<h2>
-							{gradedECTS}/{totalECTS} ({round((gradedECTS / totalECTS) * 100)}%) ECTS
-						</h2>
 					</CardContent>
 				</Card>
 			))}
+			<CourseFocus />
 		</section>
 	);
 }
