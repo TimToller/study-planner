@@ -1,5 +1,5 @@
 import { getCurrentSemester } from "@/lib/semester";
-import { Course, CourseGroup, Semester } from "@/types/courses";
+import { Course, CourseGrading, CourseGroup, CoursePlan, CustomCourse, Semester } from "@/types/courses";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { toast } from "sonner";
@@ -31,15 +31,21 @@ export const exportAtom = atom(
 	(_get, set, data: string) => {
 		if (!data) return;
 		try {
-			const { grades, planning, settings, customCourses } = JSON.parse(data) as any;
+			const { grades, planning, settings, customCourses } = JSON.parse(data) as {
+				grades: CourseGrading[];
+				planning: CoursePlan[];
+				settings: Settings;
+				customCourses?: CustomCourse[];
+			};
 
+			set(onboardingAtom, true);
 			set(gradesAtom, grades);
 			set(planningAtom, planning);
 			set(settingsAtom, settings);
 			set(customCoursesAtom, customCourses ?? []);
 			toast.success("Successfully imported settings");
-		} catch (error: any) {
-			toast.error("Failed to import data");
+		} catch (e) {
+			toast.error(`Failed to import data: ${e}`);
 		}
 	}
 );

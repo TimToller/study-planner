@@ -30,7 +30,7 @@ const courseSchema = z.object({
 type CourseFormValues = z.infer<typeof courseSchema>;
 
 export default function CustomCourseForm() {
-	const [_, setCustomCourses] = useAtom(customCoursesAtom);
+	const [, setCustomCourses] = useAtom(customCoursesAtom);
 	const [visible, setVisible] = useState(false);
 	const form = useForm<CourseFormValues>({
 		resolver: zodResolver(courseSchema),

@@ -2,12 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { onboardingAtom, programAtom, startingSemesterAtom } from "@/store/settings";
+import { onboardingAtom, Program, programAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
 import { useForm } from "react-hook-form";
-
-type Program = "WS" | "SS";
 
 interface OnboardingForm {
 	program: Program | null;
