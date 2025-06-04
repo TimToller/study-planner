@@ -61,19 +61,39 @@ export const groupStatsAtom = atom((get) => {
 	return get(courseGroupsAtom).map((group) => {
 		const groupGrades = grades.filter((g) => group.courses.some((c) => `${c.type} ${c.name}` === g.name));
 
-		const average = weightedAverage(groupGrades.map((g) => ({ number: g.grade, weight: ects.get(g.name) ?? 0 })));
+		const average = weightedAverage(
+			groupGrades.map((g) => ({
+				number: g.grade!,
+				weight: ects.get(g.name) ?? 0,
+			}))
+		);
 
 		const totalECTS = group.courses.reduce((sum, c) => sum + c.ects, 0);
+
 		const gradedECTS = group.courses
 			.filter((c) => grades.some((g) => g.name === `${c.type} ${c.name}`))
 			.reduce((sum, c) => sum + c.ects, 0);
 
+		const gradedSum = groupGrades.reduce((sum, g) => {
+			const courseECTS = ects.get(g.name) ?? 0;
+			return sum + g.grade! * courseECTS;
+		}, 0);
+
+		const ungradedECTS = totalECTS - gradedECTS;
+
+		const optimisticAverage = totalECTS > 0 ? (gradedSum + 1 * ungradedECTS) / totalECTS : NaN;
+
+		const rounded = round(average, 0);
+		const optimisticRounded = round(optimisticAverage, 0);
+
 		return {
 			name: group.name,
 			average,
-			rounded: round(average, 0),
+			rounded: rounded,
 			totalECTS,
 			gradedECTS,
+			optimisticRounded,
+			optimisticAverage,
 		} as const;
 	});
 });
@@ -92,22 +112,40 @@ export const passedWithDistinctionSimAtom = atom((get) => {
 
 export const simulationGoalReachableAtom = atom((get) => {
 	const goal = get(simulationGoalAtom);
-	const dbg: string[] = [];
+	const allGrades = get(combinedGradesAtom);
 
-	if (goal === "passed") {
-		const fails = get(combinedGradesAtom)
-			.filter((g) => g.grade !== undefined)
-			.some((g) => g.grade >= 5);
-		if (fails) dbg.push("At least one graded course is 5 or worse.");
-		return { reachable: !fails, reasons: dbg } as const;
+	const hasFail = allGrades.filter((g) => g.grade !== undefined).some((g) => g.grade! >= 5);
+
+	if (hasFail) {
+		return {
+			reachable: false,
+			reasons: ["At least one already-graded course is 5 or worse."],
+		} as const;
+	} else if (goal === "passed") {
+		return { reachable: true, reasons: [] } as const;
 	}
 
-	const { distinction, noThreeOrWorse, moreThanHalfAreOnes } = get(passedWithDistinctionSimAtom);
-	if (distinction) return { reachable: true, reasons: [] } as const;
+	const groups = get(groupStatsAtom);
+	const reasons: string[] = [];
 
-	if (!noThreeOrWorse) dbg.push("Some group averages are 3 or worse.");
-	if (!moreThanHalfAreOnes) dbg.push("Less than half of group averages are 1.");
-	return { reachable: false, reasons: dbg } as const;
+	const tooHigh = groups.find((g) => g.optimisticRounded >= 3);
+	if (tooHigh) {
+		reasons.push(
+			`Group “${tooHigh.name}” would end up rounding to ${tooHigh.optimisticRounded}, even if every missing course were a 1.`
+		);
+	}
+
+	const countOnes = groups.filter((g) => g.optimisticRounded === 1).length;
+	if (!(countOnes > groups.length / 2)) {
+		reasons.push(`Only ${countOnes} out of ${groups.length} groups would round to 1 (optimistically).`);
+	}
+
+	console.log("Ones", countOnes);
+
+	if (reasons.length > 0) {
+		return { reachable: false, reasons } as const;
+	}
+	return { reachable: true, reasons: [] } as const;
 });
 
 export interface CourseImportance {
@@ -129,6 +167,7 @@ export const courseImportanceAtom = atom<CourseImportance[]>((get) => {
 	return get(courseGroupsAtom)
 		.flatMap((group) => {
 			const stats = groups.find((g) => g.name === group.name)!;
+
 			const { average: groupAvg, gradedECTS, totalECTS } = stats;
 			const distance = isNaN(groupAvg) ? 1 : Math.max(0, groupAvg - targetGrade) + 0.1; // +0.1 so zero distance ≠ drop to 0
 

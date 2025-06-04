@@ -50,8 +50,6 @@ export default function CourseFocus() {
 
 		return groups.map((group) => {
 			const groupStat = stats.find((s) => s.name === group.name);
-			const rounded = groupStat?.rounded;
-			const average = groupStat?.average;
 
 			const courses = group.courses.map((c) => {
 				const key = `${c.type} ${c.name}`;
@@ -74,10 +72,11 @@ export default function CourseFocus() {
 
 			return {
 				name: group.name,
-				rounded,
+				rounded: groupStat?.rounded,
 				courses,
 				fullyGraded,
-				average,
+				average: groupStat?.average,
+				optimisticAverage: groupStat?.optimisticAverage,
 			};
 		});
 	}, [grades, simGrades, groups, stats, importance]);
@@ -96,15 +95,29 @@ export default function CourseFocus() {
 		<div className="flex flex-col gap-6">
 			<header className="flex flex-col gap-2">
 				<h2 className="text-2xl font-bold">Course Focus</h2>
-				<p>Use the planner below to see which upcoming courses will move the needle for your selected goal.</p>
+				<p>Use the planner below to "Simulate" which grades you would need to reach your goals and which courses to focus on.</p>
 			</header>
 
-			{/* Usage alert */}
 			<Alert>
 				<Info className="h-4 w-4" />
 				<AlertTitle>Usage</AlertTitle>
 				<AlertDescription>
-					Adjust hypothetical grades in the dropdowns. Collapsible headers are color‑coded by their current rounded average.
+					Adjust hypothetical grades in the dropdowns. Collapsible headers are color-coded by their current rounded average. You
+					will see both the average of each group and the group upper-bound, i.e. the average if all remaining courses are graded
+					with a 1.
+					<br />
+					<br />
+					The ⚡ Emojis are an indicator as to which courses are important for your goal. The more ⚡ Emojis, the more important
+					the course is for your goal. Courses with lots of ECTS, in groups with few total ECTS have the largest impact.
+					<br />
+					<br />
+					Use this tool with caution and only as a rough guide,{" "}
+					<b>I can not guarantee that every calculation was done correctly</b>. If you have found a bug or know a way how to
+					improve this, please create a PR
+					<a href="https://github.com/TimToller/study-planner/compare" className="underline ml-1">
+						here
+					</a>
+					.
 				</AlertDescription>
 			</Alert>
 
@@ -152,7 +165,12 @@ export default function CourseFocus() {
 						<AccordionTrigger className="px-4 py-2 flex items-center gap-2">
 							<span className="font-semibold flex-1">{g.name}</span>
 							{g.rounded !== undefined && !isNaN(g.rounded) && (
-								<span className="text-sm font-mono">Ø {g.average?.toPrecision(3)}</span>
+								<>
+									<span className="text-sm font-mono">Ø {g.average?.toPrecision(3)}</span>
+									{g.average !== g.optimisticAverage && (
+										<span className="text-sm font-mono">≥ {g.optimisticAverage?.toPrecision(3)}</span>
+									)}
+								</>
 							)}
 							{g.fullyGraded && <span className="text-xs text-gray-500">Fully graded</span>}
 						</AccordionTrigger>
@@ -182,6 +200,9 @@ export default function CourseFocus() {
 												<p className="font-medium">
 													{c.key}
 													<span className="ml-2 text-xs text-gray-500">{c.ects} ECTS</span>
+													{c.realGrade === undefined && (
+														<span className="ml-2 text-xs text-gray-500">{"⚡".repeat(Math.ceil(c.importance * 5))}</span>
+													)}
 												</p>
 												{c.explanation && <p className="text-xs text-gray-600 mt-1">{c.explanation}</p>}
 											</div>
