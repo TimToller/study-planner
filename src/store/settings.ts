@@ -49,12 +49,14 @@ export type Settings = {
 	startingSemester: Semester;
 	ignoreGraded: boolean;
 	program: Program;
+	onboardingCompleted: boolean;
 };
 
 export const settingsAtom = atomWithStorage<Settings>("settings", {
 	startingSemester: getCurrentSemester(),
 	ignoreGraded: false,
 	program: "AI",
+	onboardingCompleted: false,
 });
 
 export const startingSemesterAtom = atom(
@@ -79,6 +81,12 @@ export const programAtom = atom(
 	}
 );
 
+export const onboardingAtom = atom(
+	(get) => get(settingsAtom).onboardingCompleted ?? false,
+	(get, set, value: boolean) => {
+		set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
+	}
+);
 export const courseGroupsAtom = atom<CourseGroup<string>[]>((get) =>
 	get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups
 );

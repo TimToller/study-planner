@@ -140,8 +140,6 @@ export const simulationGoalReachableAtom = atom((get) => {
 		reasons.push(`Only ${countOnes} out of ${groups.length} groups would round to 1 (optimistically).`);
 	}
 
-	console.log("Ones", countOnes);
-
 	if (reasons.length > 0) {
 		return { reachable: false, reasons } as const;
 	}

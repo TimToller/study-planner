@@ -91,6 +91,20 @@ export default function CourseFocus() {
 		}
 	};
 
+	if (grades.length === 0) {
+		return (
+			<div className="flex flex-col gap-6">
+				<header className="flex flex-col gap-2">
+					<h2 className="text-2xl font-bold">Course Focus</h2>
+					<p>
+						Start filling in your grades in the List section to use the Course Focus tool. It will help you simulate which grades
+						you would need to reach your goals and which courses to focus on.
+					</p>
+				</header>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex flex-col gap-6">
 			<header className="flex flex-col gap-2">
