@@ -207,7 +207,7 @@ export default function CourseFocus() {
 							<div className="flex flex-col gap-3">
 								{g.courses
 									.filter((c) => c.realGrade === undefined || showGraded[g.name])
-									.sort((a, b) => b.importance - a.importance)
+									.sort((a, b) => a.key.localeCompare(b.key))
 									.map((c) => (
 										<div key={c.key} className="flex flex-row gap-4 items-start border p-3 rounded-md">
 											<div className="flex-1">
