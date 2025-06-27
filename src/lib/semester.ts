@@ -59,7 +59,12 @@ export const getSemester = (semester: number, startSemester: Semester) => {
 	return { type, year };
 };
 
-export const formatSemester = (semesterCount: number, startSemester: Semester) => {
+export const formatSemester = (
+	semesterCount: number,
+	startSemester: Semester,
+	{ simple }: { simple?: boolean } = { simple: false }
+) => {
 	const semester = getSemester(semesterCount, startSemester);
+	if (simple) return `${semester.type} ${semester.year}`;
 	return `${semesterCount} (${semester.type} ${semester.year})`;
 };

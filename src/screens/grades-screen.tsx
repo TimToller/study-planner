@@ -1,4 +1,5 @@
 import CourseFocus from "@/components/course-focus";
+import ScholarshipRecommendation from "@/components/scholarship-reccomend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { average, round } from "@/lib/utils";
@@ -91,6 +92,7 @@ export default function GradesScreen() {
 					</Card>
 				))}
 			</div>
+			<ScholarshipRecommendation />
 			<CourseFocus />
 		</section>
 	);
