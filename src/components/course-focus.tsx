@@ -125,6 +125,10 @@ export default function CourseFocus() {
 					the course is for your goal. Courses with lots of ECTS, in groups with few total ECTS have the largest impact.
 					<br />
 					<br />
+					Setting the <b>Lower bound grades</b> essentially tries to fill the "un-simulated" grades in such a way, that you reach
+					your goal with the lowest possible grades.
+					<br />
+					<br />
 					Use this tool with caution and only as a rough guide,{" "}
 					<b>I can not guarantee that every calculation was done correctly</b>. If you have found a bug or know a way how to
 					improve this, please create a PR
