@@ -1,5 +1,6 @@
 import { Course, CoursePlan } from "@/types/courses";
 
+import { getCourseByName } from "@/lib/course";
 import { getSemester } from "@/lib/semester";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
@@ -60,11 +61,21 @@ export const planningInfoAtom = atom((get) => {
 	let aosECTS = 0;
 
 	planning.forEach((course) => {
-		//Errors
-		const courseData = get(rawCoursesAtom).find((c) => c.name === course.name)!;
+		const courseData = getCourseByName(get(rawCoursesAtom), course.name);
+		if (!courseData) {
+			console.log(course.name);
+
+			return;
+		}
 
 		if (course.plannedSemester === undefined || course.plannedSemester === "accredited") {
 			return;
+		}
+
+		if (courseData?.group === "Free Elective") {
+			freeElectiveECTS += courseData.ects;
+		} else if (courseData?.group === "Area of Specialization") {
+			aosECTS += courseData.ects;
 		}
 
 		if (ignoreGraded && grades.find((g) => g.name === course.name)?.grade !== undefined) {
@@ -91,21 +102,19 @@ export const planningInfoAtom = atom((get) => {
 				(p) =>
 					p.name.slice(3) === course.name.slice(3) &&
 					p.plannedSemester !== "accredited" &&
-					get(rawCoursesAtom).find((c) => c.name === p.name)!.type === "VL"
+					getCourseByName(get(rawCoursesAtom), p.name)!.type === "VL"
 			);
 
-			if (courseVL && course.plannedSemester !== courseVL.plannedSemester) {
+			if (
+				courseVL &&
+				course.plannedSemester !== courseVL.plannedSemester &&
+				courseData.recommendedSemester === getCourseByName(get(rawCoursesAtom), courseVL.name)!.recommendedSemester
+			) {
 				warnings.push({
 					message: `Course **${course.name}** should ideally be taken in the same semester as the lecture`,
 					courses: get(rawCoursesAtom).filter((c) => c.name.slice(3) === courseVL.name.slice(3)),
 				});
 			}
-		}
-
-		if (courseData.group === "Free Elective") {
-			freeElectiveECTS += courseData.ects;
-		} else if (courseData.group === "Area of Specialization") {
-			aosECTS += courseData.ects;
 		}
 
 		//check dependencies

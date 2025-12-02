@@ -8,7 +8,6 @@ import { courseGroupsAtom, rawCoursesAtom } from "@/store/settings";
 import { gradesAtom } from "./grades";
 
 export type SimulationGoal = "passed" | "passedWithDistinction";
-export const simulationGoalAtom = atomWithStorage<SimulationGoal>("simulationGoal", "passedWithDistinction");
 
 export const simulationGradesAtom = atomWithStorage<CourseGrading[]>("simulationGrades", []);
 
@@ -111,7 +110,7 @@ export const passedWithDistinctionSimAtom = atom((get) => {
 });
 
 export const simulationGoalReachableAtom = atom((get) => {
-	const goal = get(simulationGoalAtom);
+	const goal = "passedWithDistinction";
 	const allGrades = get(combinedGradesAtom);
 
 	const hasFail = allGrades.filter((g) => g.grade !== undefined).some((g) => g.grade! >= 5);
@@ -159,7 +158,7 @@ export const courseImportanceAtom = atom<CourseImportance[]>((get) => {
 	const combined = get(combinedGradesAtom);
 	const gradedNames = new Set(combined.filter((g) => g.grade !== undefined).map((g) => g.name));
 	const groups = get(groupStatsAtom);
-	const goal = get(simulationGoalAtom);
+	const goal = "passedWithDistinction";
 	const targetGrade = goal === "passedWithDistinction" ? 1 : 4; // simplistic – change if rules differ
 
 	return get(courseGroupsAtom)

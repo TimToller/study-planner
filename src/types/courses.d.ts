@@ -11,6 +11,7 @@ export interface Course<Name extends string> {
 	recommendedSemester: number | null;
 	plannedSemester?: number | "accredited";
 	grade?: number;
+	legacyNames?: string[];
 	type: "UE" | "VL" | "PR" | "SE" | "KV";
 	group: string;
 	notUsedForDistinction?: boolean;

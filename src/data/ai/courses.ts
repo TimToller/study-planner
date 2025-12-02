@@ -1,10 +1,10 @@
-import {CourseGroup} from "@/types/courses";
-import {generateRawCourses} from "@/data/courses.ts";
+import { generateRawCourses } from "@/data/courses.ts";
+import { CourseGroup } from "@/types/courses";
 
 export type CourseName =
 	| "Hands-on AI I"
 	| "Introduction to AI"
-	| "Lecture Series Artificial Intelligence"
+	| "Current Topics in AI"
 	| "Responsible AI"
 	| "Programming in Python I"
 	| "Logic"
@@ -24,7 +24,7 @@ export type CourseName =
 	| "Seminar in AI"
 	| "Learning from User-generated Data"
 	| "Computational Data Analytics"
-	| "Formal Models"
+	| "Formal Models for AI"
 	| "Machine Learning: Unsupervised Techniques"
 	| "Machine Learning and Pattern Classification"
 	| "Numerical Optimization"
@@ -46,8 +46,8 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 			{ type: "UE", name: "Hands-on AI II", ects: 3, available: "SS", recommendedSemester: 2 },
 			{ type: "VL", name: "Hands-on AI II", ects: 1.5, available: "SS", recommendedSemester: 2 },
 			{ type: "VL", name: "Introduction to AI", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "PR", name: "Practical Work in AI", ects: 7.5, available: "WS", recommendedSemester: 5 },
-			{ type: "SE", name: "Seminar in AI", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "PR", name: "Practical Work in AI", ects: 7.5, recommendedSemester: 5 },
+			{ type: "SE", name: "Seminar in AI", ects: 3, recommendedSemester: 4 },
 			{ type: "UE", name: "Artificial Intelligence", ects: 1.5, available: "WS", recommendedSemester: 3 },
 			{ type: "VL", name: "Artificial Intelligence", ects: 3, available: "WS", recommendedSemester: 3 },
 		],
@@ -55,10 +55,17 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 	{
 		name: "AI and Society",
 		courses: [
-			{ type: "VL", name: "Lecture Series Artificial Intelligence", ects: 1.5, available: "WS", recommendedSemester: 1 },
-			{ type: "KV", name: "Responsible AI", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "KV", name: "Technology and Society", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "KV", name: "Gender Studies", ects: 3, available: "SS", recommendedSemester: 6 },
+			{
+				type: "VL",
+				name: "Current Topics in AI",
+				legacyNames: ["VL Lecture Series Artificial Intelligence"],
+				ects: 1.5,
+				available: "WS",
+				recommendedSemester: 1,
+			},
+			{ type: "KV", name: "Responsible AI", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "KV", name: "Technology and Society", ects: 3, available: "WS", recommendedSemester: 1 },
+			{ type: "KV", name: "Gender Studies", ects: 3, recommendedSemester: 6 },
 		],
 	},
 	{
@@ -80,8 +87,8 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 			{ type: "UE", name: "Statistics for AI", ects: 3, available: "SS", recommendedSemester: 2 },
 			{ type: "VL", name: "Statistics for AI", ects: 3, available: "SS", recommendedSemester: 2 },
 			{ type: "KV", name: "Machine Learning: Basic Techniques", ects: 3, available: "WS", recommendedSemester: 3 },
-			{ type: "UE", name: "Visualization", ects: 1.5, available: "WS", recommendedSemester: 3 },
-			{ type: "VL", name: "Visualization", ects: 3, available: "WS", recommendedSemester: 3 },
+			{ type: "UE", name: "Visualization", ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", name: "Visualization", ects: 3, available: "SS", recommendedSemester: 4 },
 			{ type: "UE", name: "Learning from User-generated Data", ects: 1.5, available: "SS", recommendedSemester: 4 },
 			{ type: "VL", name: "Learning from User-generated Data", ects: 3, available: "SS", recommendedSemester: 4 },
 			{ type: "KV", name: "Computational Data Analytics", ects: 3, available: "SS", recommendedSemester: 4 },
@@ -98,10 +105,24 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 		courses: [
 			{ type: "UE", name: "Logic", ects: 1.5, available: "WS", recommendedSemester: 1 },
 			{ type: "VL", name: "Logic", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "UE", name: "Formal Models", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Formal Models", ects: 3, available: "SS", recommendedSemester: 4 },
-			{ type: "UE", name: "Computational Logics for AI", ects: 1.5, available: "WS", recommendedSemester: 5 },
-			{ type: "VL", name: "Computational Logics for AI", ects: 3, available: "WS", recommendedSemester: 5 },
+			{
+				type: "UE",
+				name: "Formal Models for AI",
+				legacyNames: ["UE Formal Models"],
+				ects: 1.5,
+				available: "WS",
+				recommendedSemester: 5,
+			},
+			{
+				type: "VL",
+				name: "Formal Models for AI",
+				legacyNames: ["VL Formal Models"],
+				ects: 3,
+				available: "WS",
+				recommendedSemester: 5,
+			},
+			{ type: "UE", name: "Computational Logics for AI", ects: 1.5, available: "WS", recommendedSemester: 3 },
+			{ type: "VL", name: "Computational Logics for AI", ects: 3, available: "WS", recommendedSemester: 3 },
 		],
 	},
 	{
@@ -112,7 +133,7 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 			{ type: "UE", name: "Machine Learning: Unsupervised Techniques", ects: 1.5, available: "SS", recommendedSemester: 4 },
 			{ type: "VL", name: "Machine Learning: Unsupervised Techniques", ects: 3, available: "SS", recommendedSemester: 4 },
 			{ type: "UE", name: "Machine Learning and Pattern Classification", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Machine Learning and Pattern Classification", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", name: "Machine Learning and Pattern Classification", ects: 3, available: "SS", recommendedSemester: 2 },
 			{ type: "UE", name: "Reinforcement Learning", ects: 1.5, available: "WS", recommendedSemester: 5 },
 			{ type: "VL", name: "Reinforcement Learning", ects: 3, available: "WS", recommendedSemester: 5 },
 		],
@@ -136,4 +157,4 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 	},
 ];
 
-export const rawCourses = generateRawCourses(courseGroups)
+export const rawCourses = generateRawCourses(courseGroups);
