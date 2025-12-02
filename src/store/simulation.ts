@@ -7,7 +7,8 @@ import { CourseGrading } from "@/types/courses";
 import { courseGroupsAtom, rawCoursesAtom } from "@/store/settings";
 import { gradesAtom } from "./grades";
 
-export type SimulationGoal = "passed" | "passedWithDistinction";
+export type SimulationGoal = "allA" | "passedWithDistinction";
+export const simulationGoalAtom = atom<SimulationGoal>("passedWithDistinction");
 
 export const simulationGradesAtom = atomWithStorage<CourseGrading[]>("simulationGrades", []);
 
@@ -38,6 +39,11 @@ export const resetSimulationGradesAtom = atom(null, (get, set) => {
 	if (current.length > 0) {
 		set(simulationGradesAtom, []);
 	}
+});
+
+export const setLowerBoundSimulationGradesAtom = atom(null, (get, set) => {
+	const real = get(gradesAtom);
+	const sim = get(simulationGradesAtom);
 });
 
 const ectsMapAtom = atom((get) => {
@@ -110,7 +116,7 @@ export const passedWithDistinctionSimAtom = atom((get) => {
 });
 
 export const simulationGoalReachableAtom = atom((get) => {
-	const goal = "passedWithDistinction";
+	const goal = get(simulationGoalAtom);
 	const allGrades = get(combinedGradesAtom);
 
 	const hasFail = allGrades.filter((g) => g.grade !== undefined).some((g) => g.grade! >= 5);
@@ -120,12 +126,20 @@ export const simulationGoalReachableAtom = atom((get) => {
 			reachable: false,
 			reasons: ["At least one already-graded course is 5 or worse."],
 		} as const;
-	} else if (goal === "passed") {
-		return { reachable: true, reasons: [] } as const;
 	}
 
 	const groups = get(groupStatsAtom);
 	const reasons: string[] = [];
+
+	if (goal === "allA") {
+		const notA = groups.find((g) => g.optimisticRounded > 1);
+		if (notA) {
+			reasons.push(
+				`Group “${notA.name}” would end up rounding to ${notA.optimisticRounded}, even if every missing course were a 1.`
+			);
+		}
+		return reasons.length > 0 ? ({ reachable: false, reasons } as const) : ({ reachable: true, reasons: [] } as const);
+	}
 
 	const tooHigh = groups.find((g) => g.optimisticRounded >= 3);
 	if (tooHigh) {

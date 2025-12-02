@@ -4,7 +4,9 @@ import {
 	courseImportanceAtom,
 	groupStatsAtom,
 	resetSimulationGradesAtom,
+	setLowerBoundSimulationGradesAtom,
 	setSimulationGradesAtom,
+	simulationGoalAtom,
 	simulationGoalReachableAtom,
 	simulationGradesAtom,
 } from "@/store/simulation";
@@ -26,11 +28,12 @@ function colorClasses(rounded: number | undefined) {
 }
 
 export default function CourseFocus() {
-	// const [simulationGoal, setSimulationGoal] = useAtom(simulationGoalAtom);
+	const [simulationGoal, setSimulationGoal] = useAtom(simulationGoalAtom);
 	const [grades] = useAtom(gradesAtom);
 	const [simGrades] = useAtom(simulationGradesAtom);
 	const [, setSimGrades] = useAtom(setSimulationGradesAtom);
 	const [, resetSimGrades] = useAtom(resetSimulationGradesAtom);
+	const [, setLowerBoundSimGrades] = useAtom(setLowerBoundSimulationGradesAtom);
 	const [groups] = useAtom(courseGroupsAtom);
 	const [stats] = useAtom(groupStatsAtom);
 	const [importance] = useAtom(courseImportanceAtom);
@@ -134,19 +137,22 @@ export default function CourseFocus() {
 
 			{/* Goal picker */}
 			<div className="flex flex-row gap-4 items-center">
-				{/* <h3 className="text-lg">Goal:</h3>
+				<h3 className="text-lg">Goal:</h3>
 				<Select onValueChange={(g) => setSimulationGoal(g as SimulationGoal)} value={simulationGoal}>
 					<SelectTrigger className="w-56">
 						<SelectValue placeholder="Select a goal" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectGroup>
-							<SelectItem value="passed">Passed</SelectItem>
+							<SelectItem value="allA">All groups Sehr gut</SelectItem>
 							<SelectItem value="passedWithDistinction">Passed with Distinction</SelectItem>
 						</SelectGroup>
 					</SelectContent>
-				</Select> */}
-				<Button variant="outline" size="sm" onClick={() => resetSimGrades()} className="ml-auto">
+				</Select>
+				<Button variant="outline" size="sm" onClick={() => setLowerBoundSimGrades()}>
+					Set Lower Bound Grades
+				</Button>
+				<Button variant="outline" size="sm" onClick={() => resetSimGrades()}>
 					Reset Simulation
 				</Button>
 			</div>
@@ -156,7 +162,7 @@ export default function CourseFocus() {
 					<Check className="h-4 w-4 !text-emerald-500" />
 					<AlertTitle>Goal achievable!</AlertTitle>
 					<AlertDescription>
-						Great! You're on track to pass with distinction. Find out which grades will help you the most.
+						Great! You're on track to achieve your goal. Find out which grades will help you the most.
 					</AlertDescription>
 				</Alert>
 			) : (
@@ -164,7 +170,7 @@ export default function CourseFocus() {
 					<X className="h-4 w-4 !text-destructive" />
 					<AlertTitle>Goal not achievable!</AlertTitle>
 					<AlertDescription>
-						Unfortunately, you won't be able to pass with distinction. {goalReachable.reasons.join(" ")}
+						Unfortunately, you won't be able to achieve your goal. {goalReachable.reasons.join(" ")}
 					</AlertDescription>
 				</Alert>
 			)}
