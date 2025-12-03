@@ -9,6 +9,7 @@ import {
 	simulationGoalAtom,
 	simulationGoalReachableAtom,
 	simulationGradesAtom,
+	simulationGradesAverageAtom,
 } from "@/store/simulation";
 import { useAtom } from "jotai";
 import { Check, Eye, EyeOff, Info, X } from "lucide-react";
@@ -39,6 +40,7 @@ export default function CourseFocus() {
 	const [importance] = useAtom(courseImportanceAtom);
 
 	const [goalReachable] = useAtom(simulationGoalReachableAtom);
+	const [simulationGradesAverage] = useAtom(simulationGradesAverageAtom);
 
 	const [showGraded, setShowGraded] = useState<Record<string, boolean>>({});
 	const toggleShowGraded = (g: string) => setShowGraded((s) => ({ ...s, [g]: !s[g] }));
@@ -105,6 +107,16 @@ export default function CourseFocus() {
 		);
 	}
 
+	const SimulationGrades = (
+		<>
+			Given your current simulation you would have:
+			<br />
+			<b>Course average:</b> {simulationGradesAverage.courseAverage?.toPrecision(3)}
+			<br />
+			<b>Group average:</b> {simulationGradesAverage.groupAverage?.toPrecision(3)}
+		</>
+	);
+
 	return (
 		<div className="flex flex-col gap-6">
 			<header className="flex flex-col gap-2">
@@ -167,6 +179,8 @@ export default function CourseFocus() {
 					<AlertTitle>Goal achievable!</AlertTitle>
 					<AlertDescription>
 						Great! You're on track to achieve your goal. Find out which grades will help you the most.
+						<br />
+						{SimulationGrades}
 					</AlertDescription>
 				</Alert>
 			) : (
@@ -175,6 +189,8 @@ export default function CourseFocus() {
 					<AlertTitle>Goal not achievable!</AlertTitle>
 					<AlertDescription>
 						Unfortunately, you won't be able to achieve your goal. {goalReachable.reasons.join(" ")}
+						<br />
+						{SimulationGrades}
 					</AlertDescription>
 				</Alert>
 			)}

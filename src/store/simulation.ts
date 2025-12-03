@@ -110,6 +110,26 @@ export const passedWithDistinctionSimAtom = atom((get) => {
 	return { distinction, noThreeOrWorse, moreThanHalfAreOnes } as const;
 });
 
+export const simulationGradesAverageAtom = atom((get) => {
+	const allGrades = get(combinedGradesAtom).filter((g) => g.grade !== undefined);
+	const ectsMap = get(ectsMapAtom);
+
+	const courseAverage = weightedAverage(
+		allGrades.map((g) => ({
+			number: g.grade!,
+			weight: ectsMap.get(g.name) ?? 0,
+		}))
+	);
+
+	const groupAverages = get(groupStatsAtom)
+		.map((g) => g.average)
+		.filter((a) => !isNaN(a));
+	const groupAverage =
+		groupAverages.length > 0 ? groupAverages.reduce((sum, a) => sum + Math.round(a), 0) / groupAverages.length : NaN;
+
+	return { courseAverage, groupAverage };
+});
+
 export const simulationGoalReachableAtom = atom((get) => {
 	const goal = get(simulationGoalAtom);
 	const allGrades = get(combinedGradesAtom);

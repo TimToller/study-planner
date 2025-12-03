@@ -5,8 +5,8 @@ import { planningAtom } from "./planning";
 import { rawCoursesAtom } from "./settings";
 
 //TODO This could be improved
-const getChances = (average: number, points: number) => {
-	if (average > 2 || points < 230) return "Low";
+const getChances = (average: number, points: number, ects: number) => {
+	if (average > 2 || points < 230 || ects < 40) return "Low";
 	if (points < 250) return "Moderate";
 	if (points < 330) return "Good";
 	return "Very Good";
@@ -50,7 +50,7 @@ export const recentCourseAverageAtom = atom((get) => {
 	//here we just assume everything is a VL, VO,  VU, KV, UE even though KO, SE etc. would have different weights.
 	//This is just a rough estimate anyway.
 	const points = recent.reduce((s, c) => s + Math.floor(c.ects / 1.5) * (5 - c.grade), 0) * 2;
-	const chances = getChances(average, points);
+	const chances = getChances(average, points, ects);
 
 	return { average: isNaN(average) ? undefined : average, ects, latestSemester, points, chances };
 });
