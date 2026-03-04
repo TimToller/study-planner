@@ -1,7 +1,9 @@
 import CourseFocus from "@/components/course-focus";
 import ScholarshipRecommendation from "@/components/scholarship-reccomend";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { GROUP_REQUIRED_ECTS } from "@/lib/requirements";
 import { average, round, roundGrade } from "@/lib/utils";
 import {
 	courseGradeAverageAtom,
@@ -9,7 +11,9 @@ import {
 	groupGradesRoundedAtom,
 	passedWithDistinctionAtom,
 } from "@/store/grades";
+import { personalCoursesAtom } from "@/store/planning";
 import { useAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 function colorClasses(rounded: number | undefined) {
 	if (rounded === 1) return "border-emerald-500 bg-emerald-50";
@@ -24,8 +28,52 @@ export default function GradesScreen() {
 	const [courseGradeAverage] = useAtom(courseGradeAverageAtom);
 	const [groupGradesRounded] = useAtom(groupGradesRoundedAtom);
 	const [groupGradesAverage] = useAtom(groupGradesAverageAtom);
+	const [courses] = useAtom(personalCoursesAtom);
 
 	const [{ distinction, moreThanHalfOne, noThree }] = useAtom(passedWithDistinctionAtom);
+	const hasCelebratedRef = useRef(false);
+
+	const allCoursesGraded = useMemo(() => courses.length > 0 && courses.every((course) => course.grade !== undefined), [courses]);
+	const requiredGroupsFilled = useMemo(
+		() =>
+			Object.keys(GROUP_REQUIRED_ECTS).every((groupName) => {
+				const group = groupGradesAverage.find((g) => g.name === groupName);
+				return !!group && group.gradedECTS >= group.totalECTS;
+			}),
+		[groupGradesAverage],
+	);
+	const canCelebrate = allCoursesGraded && requiredGroupsFilled;
+
+	const fireConfetti = useCallback(async () => {
+		const { default: confetti } = await import("canvas-confetti");
+		const count = 200;
+		const defaults = { origin: { y: 0.7 } };
+
+		const fire = (particleRatio: number, options: Parameters<typeof confetti>[0]) => {
+			confetti({
+				...defaults,
+				...options,
+				particleCount: Math.floor(count * particleRatio),
+			});
+		};
+
+		fire(0.25, { spread: 26, startVelocity: 55 });
+		fire(0.2, { spread: 60 });
+		fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+		fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+		fire(0.1, { spread: 120, startVelocity: 45 });
+	}, []);
+
+	useEffect(() => {
+		if (canCelebrate && !hasCelebratedRef.current) {
+			hasCelebratedRef.current = true;
+			void fireConfetti();
+		}
+
+		if (!canCelebrate) {
+			hasCelebratedRef.current = false;
+		}
+	}, [canCelebrate, fireConfetti]);
 
 	return (
 		<section className="h-full m-4 flex flex-col gap-4">
@@ -66,6 +114,9 @@ export default function GradesScreen() {
 							<h2 className="text-lg">Passed with distinction</h2>
 							<h3 className="text-lg font-bold">{distinction ? "TRUE" : "FALSE"}</h3>
 						</div>
+						<Button variant="outline" onClick={() => void fireConfetti()} disabled={!canCelebrate}>
+							Replay Celebration
+						</Button>
 					</CardContent>
 				</Card>
 				{groupGradesAverage.map(({ average, gradedECTS, name, totalECTS }) => (
