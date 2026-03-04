@@ -16,11 +16,22 @@ export const round = (value: number, precision = 2) => {
 	return Math.round(value * factor) / factor;
 };
 
+export const roundGrade = (value: number) => {
+	const floor = Math.floor(value);
+	const fraction = value - floor;
+
+	if (Math.abs(fraction - 0.5) < Number.EPSILON * 10) {
+		return floor;
+	}
+
+	return Math.round(value);
+};
+
 export const average = (values: number[]) => values.reduce((acc, v) => acc + v, 0) / values.length;
 
 export const getGroupColor = (group: string) => {
 	const colorPalate = ["#64ade6", "#ddb0f4", "#929489", "#cdf3a9", "#90be6d", "#43aa8b", "#557c93", "#FADA7A"].map(
-		(c) => c + "60"
+		(c) => c + "60",
 	);
 	switch (group) {
 		case "Bachelor Thesis":

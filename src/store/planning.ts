@@ -1,6 +1,7 @@
 import { Course, CoursePlan } from "@/types/courses";
 
 import { getCourseByName } from "@/lib/course";
+import { AREA_OF_SPECIALIZATION_REQUIRED_ECTS, FREE_ELECTIVE_REQUIRED_ECTS } from "@/lib/requirements";
 import { getSemester } from "@/lib/semester";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
@@ -102,7 +103,7 @@ export const planningInfoAtom = atom((get) => {
 				(p) =>
 					p.name.slice(3) === course.name.slice(3) &&
 					p.plannedSemester !== "accredited" &&
-					getCourseByName(get(rawCoursesAtom), p.name)!.type === "VL"
+					getCourseByName(get(rawCoursesAtom), p.name)!.type === "VL",
 			);
 
 			if (
@@ -126,8 +127,8 @@ export const planningInfoAtom = atom((get) => {
 					!planning.some(
 						(p) =>
 							p.name === c.name &&
-							(p.plannedSemester === "accredited" || p.plannedSemester! <= (course.plannedSemester as number)!)
-					)
+							(p.plannedSemester === "accredited" || p.plannedSemester! <= (course.plannedSemester as number)!),
+					),
 			);
 			if (missingCourses.length > 0) {
 				switch (dependency.type) {
@@ -164,18 +165,18 @@ export const planningInfoAtom = atom((get) => {
 		}
 	});
 
-	if (freeElectiveECTS < 9) {
+	if (freeElectiveECTS < FREE_ELECTIVE_REQUIRED_ECTS) {
 		recommendations.push({
 			message: `You have only **${freeElectiveECTS} ECTS** of free electives planned. You should still have to do **${
-				9 - freeElectiveECTS
+				FREE_ELECTIVE_REQUIRED_ECTS - freeElectiveECTS
 			} ECTS** of free electives.`,
 		});
 	}
 
-	if (aosECTS < 12) {
+	if (aosECTS < AREA_OF_SPECIALIZATION_REQUIRED_ECTS) {
 		recommendations.push({
 			message: `You have only **${aosECTS} ECTS** of area of specialization planned. You should still have to do **${
-				12 - aosECTS
+				AREA_OF_SPECIALIZATION_REQUIRED_ECTS - aosECTS
 			} ECTS** of area of specialization.`,
 		});
 	}

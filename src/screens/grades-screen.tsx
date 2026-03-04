@@ -2,7 +2,7 @@ import CourseFocus from "@/components/course-focus";
 import ScholarshipRecommendation from "@/components/scholarship-reccomend";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { average, round } from "@/lib/utils";
+import { average, round, roundGrade } from "@/lib/utils";
 import {
 	courseGradeAverageAtom,
 	groupGradesAverageAtom,
@@ -10,6 +10,15 @@ import {
 	passedWithDistinctionAtom,
 } from "@/store/grades";
 import { useAtom } from "jotai";
+
+function colorClasses(rounded: number | undefined) {
+	if (rounded === 1) return "border-emerald-500 bg-emerald-50";
+	if (rounded === 2) return "border-lime-500 bg-lime-50";
+	if (rounded === 3) return "border-yellow-500 bg-yellow-50";
+	if (rounded === 4) return "border-orange-500 bg-orange-50";
+	if (rounded !== undefined && !isNaN(rounded)) return "border-red-500 bg-red-50";
+	return "border-gray-300 bg-gray-50";
+}
 
 export default function GradesScreen() {
 	const [courseGradeAverage] = useAtom(courseGradeAverageAtom);
@@ -34,7 +43,7 @@ export default function GradesScreen() {
 							<h2 className="text-lg">Group Average:</h2>
 							<h3 className="text-lg font-bold">
 								{(groupGradesRounded.length &&
-									round(average(groupGradesRounded.map((g) => g.average).filter((g) => !isNaN(g))))) ||
+									roundGrade(average(groupGradesRounded.map((g) => g.average).filter((g) => !isNaN(g))))) ||
 									"-"}
 							</h3>
 						</div>
@@ -60,7 +69,7 @@ export default function GradesScreen() {
 					</CardContent>
 				</Card>
 				{groupGradesAverage.map(({ average, gradedECTS, name, totalECTS }) => (
-					<Card key={name}>
+					<Card key={name} className={`border-2 ${colorClasses(roundGrade(average))}`}>
 						<CardHeader>
 							<div className="flex flex-col gap-2">
 								<div className="flex justify-between items-center">
@@ -85,7 +94,7 @@ export default function GradesScreen() {
 								</div>
 								<div className="flex flex-row justify-between">
 									<h2 className="text-lg">Rounded Grade:</h2>
-									<h3 className="text-lg font-bold">{round(average, 0) || "-"}</h3>
+									<h3 className="text-lg font-bold">{roundGrade(average) || "-"}</h3>
 								</div>
 							</div>
 						</CardContent>
