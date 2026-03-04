@@ -99,7 +99,7 @@ function SortableItem({
 				`p-2 rounded-md shadow-sm cursor-move transition-colors text-foreground`,
 				info && "border-4 border-gray-400",
 				info === "warning" && "border-yellow-400",
-				info === "error" && "border-red-400"
+				info === "error" && "border-red-400",
 			)}>
 			<div className="relative">
 				<div>
@@ -291,7 +291,7 @@ export default function DraggableBoard() {
 				setActiveId(null);
 			}}
 			onDragCancel={() => setActiveId(null)}>
-			<div className="flex flex-row h-full gap-4 p-4 relative">
+			<div className="flex flex-col lg:flex-row h-full gap-4 p-2 sm:p-4 relative">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
 					{Object.values(columns)
 						.filter((col) => !col.id.startsWith("search"))
@@ -319,7 +319,7 @@ export default function DraggableBoard() {
 							);
 						})}
 				</div>
-				<div className="h-[95vh] rounded-md p-2 border-2 shadow-md sticky top-2 bottom-2 min-w-[300px]">
+				<div className="h-[60vh] lg:h-[95vh] rounded-md p-2 border-2 shadow-md w-full lg:w-auto lg:sticky lg:top-2 lg:bottom-2 lg:min-w-[300px]">
 					<ScrollArea className="h-full p-2">
 						<h2 className="text-xl font-semibold mb-4 text-foreground">Available Courses</h2>
 						<DroppableContainer id="search">

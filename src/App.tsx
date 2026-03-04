@@ -18,8 +18,8 @@ function App() {
 				{!onboardingCompleted ? (
 					<OnboardingScreen />
 				) : (
-					<Tabs defaultValue="board" className="w-full min-h-screen flex items-center flex-col p-7">
-						<TabsList className="grid w-[400px] grid-cols-4">
+					<Tabs defaultValue="board" className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7">
+						<TabsList className="grid w-full max-w-md grid-cols-4">
 							<TabsTrigger value="board">Board</TabsTrigger>
 							<TabsTrigger value="list">List</TabsTrigger>
 							<TabsTrigger value="grades">Grades</TabsTrigger>

@@ -11,12 +11,12 @@ const GradeSelect = React.memo(function GradeSelect({ grade, onGradeChange }: Gr
 		(newGrade: string) => {
 			onGradeChange(newGrade === "none" ? undefined : parseInt(newGrade, 10));
 		},
-		[onGradeChange]
+		[onGradeChange],
 	);
 
 	return (
 		<Select onValueChange={handleValueChange} value={grade?.toString() ?? ""}>
-			<SelectTrigger className="w-[200px]">
+			<SelectTrigger className="w-[120px] sm:w-[200px]">
 				<SelectValue placeholder="Select a grade" />
 			</SelectTrigger>
 			<SelectContent>

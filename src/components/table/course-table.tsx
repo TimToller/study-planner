@@ -88,18 +88,18 @@ export default function CourseTable() {
 	const activeFilterCount = selectedTypes.length + selectedGroups.length;
 
 	return (
-		<div className="p-4 flex flex-col">
-			<div className="mb-4 flex flex-row gap-2 items-center justify-between w-full">
+		<div className="p-2 sm:p-4 flex flex-col">
+			<div className="mb-4 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between w-full">
 				<Input
 					type="text"
 					placeholder="Search courses..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="max-w-xs"
+					className="w-full sm:max-w-xs"
 				/>
 				<Sheet>
 					<SheetTrigger asChild>
-						<Button variant="outline" className="relative">
+						<Button variant="outline" className="relative w-full sm:w-auto">
 							<Filter className="w-4 h-4" />
 							{activeFilterCount > 0 && (
 								<span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 rounded-full bg-red-500 text-white px-2 text-xs">
@@ -234,14 +234,14 @@ function TableRowElement({
 		(newGrade: number | undefined) => {
 			updateGrade({ name, grade: newGrade });
 		},
-		[name, updateGrade]
+		[name, updateGrade],
 	);
 
 	const handleSemesterChange = useCallback(
 		(newSemester: number | undefined) => {
 			updatePlanning({ name, plannedSemester: newSemester });
 		},
-		[name, updatePlanning]
+		[name, updatePlanning],
 	);
 
 	return (

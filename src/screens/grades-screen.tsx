@@ -76,8 +76,8 @@ export default function GradesScreen() {
 	}, [canCelebrate, fireConfetti]);
 
 	return (
-		<section className="h-full m-4 flex flex-col gap-4">
-			<div className="grid gap-4 grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 grid-rows-auto ">
+		<section className="h-full m-3 sm:m-4 flex flex-col gap-4">
+			<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
 				<Card>
 					<CardHeader>
 						<CardTitle>Average</CardTitle>

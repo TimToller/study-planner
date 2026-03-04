@@ -14,14 +14,14 @@ const SemesterSelect = React.memo(function SemesterSelect({ semester, onSemester
 		(newSemester: string) => {
 			onSemesterChange(newSemester === "none" ? undefined : parseInt(newSemester, 10));
 		},
-		[onSemesterChange]
+		[onSemesterChange],
 	);
 
 	const [startingSemester] = useAtom(startingSemesterAtom);
 
 	return (
 		<Select onValueChange={handleValueChange} value={semester?.toString() ?? ""}>
-			<SelectTrigger className="w-[200px]">
+			<SelectTrigger className="w-[120px] sm:w-[200px]">
 				<SelectValue placeholder="Select a semester" />
 			</SelectTrigger>
 			<SelectContent>

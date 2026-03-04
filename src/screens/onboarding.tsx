@@ -57,9 +57,9 @@ export default function OnboardingScreen() {
 	};
 
 	return (
-		<div className="w-full min-h-screen flex items-center flex-col p-7 justify-center bg-gray-50">
+		<div className="w-full min-h-screen flex items-center flex-col p-3 sm:p-7 justify-center bg-gray-50">
 			<Form {...form}>
-				<form onSubmit={handleSubmit(onSubmit)} className="max-w-md w-full space-y-8 bg-white p-6 rounded-2xl shadow-md">
+				<form onSubmit={handleSubmit(onSubmit)} className="max-w-md w-full space-y-8 bg-white p-4 sm:p-6 rounded-2xl shadow-md">
 					{/* --- Section: My Program is: --- */}
 					<div className="space-y-2">
 						<h3 className="text-lg font-semibold">My Program is:</h3>
@@ -75,7 +75,7 @@ export default function OnboardingScreen() {
 											type="single"
 											value={field.value ?? ""}
 											onValueChange={(value) => field.onChange(value as Program)}
-											className="grid grid-cols-2 gap-2">
+											className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 											<ToggleGroupItem value="AI" aria-label="Artificial Intelligence">
 												Artificial Intelligence
 											</ToggleGroupItem>
@@ -91,7 +91,7 @@ export default function OnboardingScreen() {
 					</div>
 					<div className="space-y-2">
 						<h3 className="text-lg font-semibold">I started in:</h3>
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 							<FormField
 								name="year"
 								control={control}
