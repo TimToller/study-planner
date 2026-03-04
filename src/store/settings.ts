@@ -47,7 +47,7 @@ export const exportAtom = atom(
 		} catch (e) {
 			toast.error(`Failed to import data: ${e}`);
 		}
-	}
+	},
 );
 
 export type Program = "AI" | "CS";
@@ -60,7 +60,7 @@ export type Settings = {
 
 export const settingsAtom = atomWithStorage<Settings>("settings", {
 	startingSemester: getCurrentSemester(),
-	ignoreGraded: false,
+	ignoreGraded: true,
 	program: "AI",
 	onboardingCompleted: false,
 });
@@ -70,31 +70,31 @@ export const startingSemesterAtom = atom(
 	(get, set, value: Semester) => {
 		if (!value.type) return;
 		set(settingsAtom, { ...get(settingsAtom), startingSemester: value });
-	}
+	},
 );
 
 export const ignoreGradedAtom = atom(
 	(get) => get(settingsAtom).ignoreGraded,
 	(get, set, value: boolean) => {
 		set(settingsAtom, { ...get(settingsAtom), ignoreGraded: value });
-	}
+	},
 );
 
 export const programAtom = atom(
 	(get) => get(settingsAtom).program ?? "AI",
 	(get, set, value: Program) => {
 		set(settingsAtom, { ...get(settingsAtom), program: value });
-	}
+	},
 );
 
 export const onboardingAtom = atom(
 	(get) => get(settingsAtom).onboardingCompleted ?? false,
 	(get, set, value: boolean) => {
 		set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
-	}
+	},
 );
 export const courseGroupsAtom = atom<CourseGroup<string>[]>((get) =>
-	get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups
+	get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
 );
 
 export const rawCoursesAtom = atom<Course<string>[]>((get) => {

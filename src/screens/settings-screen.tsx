@@ -1,3 +1,4 @@
+import KusssImportDialog from "@/components/kusss-import-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ProgramToggle } from "@/components/program-toggle.tsx";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export default function SettingsScreen() {
 	const [, setPlanning] = useAtom(planningAtom);
 	const [, setGrading] = useAtom(gradesAtom);
 	const [program] = useAtom(programAtom);
+	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
 	const exportFile = () => {
 		const data = JSON.stringify(exportData);
@@ -64,8 +66,6 @@ export default function SettingsScreen() {
 		setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
 		toast.success("Successfully reset to recommended study plan");
 	};
-
-	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
 	return (
 		<section className="h-full grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 m-3 sm:m-4">
@@ -114,10 +114,38 @@ export default function SettingsScreen() {
 			<Card className="">
 				<CardHeader>
 					<CardTitle>Import/Export</CardTitle>
-					<CardDescription>Import, Export and share your data.</CardDescription>
+					<CardDescription>Import, export and share your data.</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
 					<Input type="file" onChange={(e) => importFile(e.target.files?.item(0))} accept=".json" />
+					<KusssImportDialog
+						rawCourses={rawCourses}
+						startingSemester={startingSemester}
+						onImport={({ grades, planning }) => {
+							if (!grades.length && !planning.length) {
+								toast.error("No matching courses found for this program.");
+								return;
+							}
+
+							setGrading((current) => {
+								const next = new Map(current.map((entry) => [entry.name, entry.grade]));
+								for (const grade of grades) {
+									next.set(grade.name, grade.grade);
+								}
+								return Array.from(next.entries()).map(([name, grade]) => ({ name, grade }));
+							});
+
+							setPlanning((current) => {
+								const next = new Map(current.map((entry) => [entry.name, entry.plannedSemester]));
+								for (const plan of planning) {
+									next.set(plan.name, plan.plannedSemester);
+								}
+								return Array.from(next.entries()).map(([name, plannedSemester]) => ({ name, plannedSemester }));
+							});
+
+							toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
+						}}
+					/>
 					<Button onClick={exportFile}>
 						<FileUp /> Export
 					</Button>

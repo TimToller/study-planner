@@ -114,9 +114,11 @@ export default function GradesScreen() {
 							<h2 className="text-lg">Passed with distinction</h2>
 							<h3 className="text-lg font-bold">{distinction ? "TRUE" : "FALSE"}</h3>
 						</div>
-						<Button variant="outline" onClick={() => void fireConfetti()} disabled={!canCelebrate}>
-							Replay Celebration
-						</Button>
+						{canCelebrate && (
+							<Button variant="outline" onClick={() => void fireConfetti()}>
+								Replay Celebration
+							</Button>
+						)}
 					</CardContent>
 				</Card>
 				{groupGradesAverage.map(({ average, gradedECTS, name, totalECTS }) => (

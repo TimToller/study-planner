@@ -1,14 +1,17 @@
+import KusssImportDialog from "@/components/kusss-import-dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { rawCourses as aiRawCourses } from "@/data/ai/courses";
 import { rawCourses as csRawCourses } from "@/data/cs/courses";
+import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
 import { onboardingAtom, Program, programAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface OnboardingForm {
 	program: Program | null;
@@ -20,8 +23,9 @@ export default function OnboardingScreen() {
 	// Jotai atoms for onboarding flow
 	const [, setOnboardingCompleted] = useAtom(onboardingAtom);
 	const [, setProgram] = useAtom(programAtom);
-	const [, setStartingSemester] = useAtom(startingSemesterAtom);
+	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 	const [planning, setPlanning] = useAtom(planningAtom);
+	const [, setGrading] = useAtom(gradesAtom);
 
 	// React Hook Form setup
 	const form = useForm<OnboardingForm>({
@@ -34,6 +38,19 @@ export default function OnboardingScreen() {
 		formState: { isValid },
 	} = form;
 
+	const selectedProgram = form.watch("program");
+	const selectedYear = form.watch("year");
+	const selectedSemester = form.watch("semester");
+
+	const importRawCourses = selectedProgram === "CS" ? csRawCourses : aiRawCourses;
+	const importStartingSemester =
+		selectedYear && selectedSemester
+			? {
+					year: selectedYear,
+					type: selectedSemester,
+				}
+			: startingSemester;
+
 	const onSubmit = ({ program, semester, year }: OnboardingForm) => {
 		if (program === null || semester === null || year === null) {
 			return;
@@ -42,7 +59,10 @@ export default function OnboardingScreen() {
 		if (planning.length === 0) {
 			const semesterOffset = semester === "SS" ? 1 : 0;
 			const recommendedPlan = (program === "AI" ? aiRawCourses : csRawCourses)
-				.filter((course) => course.recommendedSemester !== null)
+				.filter(
+					(course): course is (typeof aiRawCourses)[number] & { recommendedSemester: number } =>
+						course.recommendedSemester !== null,
+				)
 				.map((course) => ({
 					name: course.name,
 					plannedSemester: course.recommendedSemester + semesterOffset,
@@ -150,6 +170,37 @@ export default function OnboardingScreen() {
 						<p className="text-sm text-gray-500 text-center">(You can change these settings later)</p>
 					</div>
 					<div className="pt-4">
+						<KusssImportDialog
+							rawCourses={importRawCourses}
+							startingSemester={importStartingSemester}
+							triggerLabel="Import from KUSSS"
+							onImport={({ grades, planning }) => {
+								if (!grades.length && !planning.length) {
+									toast.error("No matching courses found for selected program.");
+									return;
+								}
+
+								setGrading((current) => {
+									const next = new Map(current.map((entry) => [entry.name, entry.grade]));
+									for (const grade of grades) {
+										next.set(grade.name, grade.grade);
+									}
+									return Array.from(next.entries()).map(([name, grade]) => ({ name, grade }));
+								});
+
+								setPlanning((current) => {
+									const next = new Map(current.map((entry) => [entry.name, entry.plannedSemester]));
+									for (const plan of planning) {
+										next.set(plan.name, plan.plannedSemester);
+									}
+									return Array.from(next.entries()).map(([name, plannedSemester]) => ({ name, plannedSemester }));
+								});
+
+								toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
+							}}
+						/>
+					</div>
+					<div className="pt-1">
 						<Button type="submit" disabled={!isValid} className="w-full">
 							Next
 						</Button>
