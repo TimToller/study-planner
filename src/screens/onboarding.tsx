@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { rawCourses as aiRawCourses } from "@/data/ai/courses";
+import { rawCourses as csRawCourses } from "@/data/cs/courses";
+import { planningAtom } from "@/store/planning";
 import { onboardingAtom, Program, programAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
@@ -18,6 +21,7 @@ export default function OnboardingScreen() {
 	const [, setOnboardingCompleted] = useAtom(onboardingAtom);
 	const [, setProgram] = useAtom(programAtom);
 	const [, setStartingSemester] = useAtom(startingSemesterAtom);
+	const [planning, setPlanning] = useAtom(planningAtom);
 
 	// React Hook Form setup
 	const form = useForm<OnboardingForm>({
@@ -34,6 +38,19 @@ export default function OnboardingScreen() {
 		if (program === null || semester === null || year === null) {
 			return;
 		}
+
+		if (planning.length === 0) {
+			const semesterOffset = semester === "SS" ? 1 : 0;
+			const recommendedPlan = (program === "AI" ? aiRawCourses : csRawCourses)
+				.filter((course) => course.recommendedSemester !== null)
+				.map((course) => ({
+					name: course.name,
+					plannedSemester: course.recommendedSemester + semesterOffset,
+				}));
+
+			setPlanning(recommendedPlan);
+		}
+
 		setProgram(program);
 		setStartingSemester({ year: year, type: semester });
 		setOnboardingCompleted(true);
