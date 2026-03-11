@@ -71,6 +71,7 @@ export const groupGradesRoundedAtom = atom((get) => {
 
 export const passedWithDistinctionAtom = atom((get) => {
 	const grouped = get(groupGradesRoundedAtom)
+		.filter((g) => g.name !== "Free Elective")
 		.map((g) => g.average)
 		.filter((a) => !isNaN(a));
 	const noThree = grouped.filter((a) => a >= 3).length === 0;

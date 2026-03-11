@@ -13,18 +13,18 @@ export const weightedAverage = (elements: { number: number; weight: number }[]) 
 
 export const round = (value: number, precision = 2) => {
 	const factor = 10 ** precision;
-	return Math.round(value * factor) / factor;
+	// Add a tiny epsilon before rounding to avoid floating-point artifacts around x.5 boundaries.
+	return Math.round((value + Number.EPSILON) * factor) / factor;
 };
 
 export const roundGrade = (value: number) => {
-	const floor = Math.floor(value);
-	const fraction = value - floor;
-
-	if (Math.abs(fraction - 0.5) < Number.EPSILON * 10) {
-		return floor;
+	const rounded = round(value, 0);
+	const fraction = value - Math.floor(value);
+	// Grades use half-down rounding at x.5 (e.g. 1.5 -> 1).
+	if (Math.abs(fraction - 0.5) < 1e-10) {
+		return Math.floor(value);
 	}
-
-	return Math.round(value);
+	return rounded;
 };
 
 export const average = (values: number[]) => values.reduce((acc, v) => acc + v, 0) / values.length;

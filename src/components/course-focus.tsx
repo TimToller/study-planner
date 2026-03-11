@@ -133,6 +133,13 @@ export default function CourseFocus() {
 					with a 1.
 					<br />
 					<br />
+					Grade rounding uses half-down ties: values ending in .5 round down (e.g. 1.5 -&gt; 1).
+					<br />
+					<br />
+					The Free Elective group does not influence the Passed with Distinction check, but it does influence the overall course
+					average.
+					<br />
+					<br />
 					The ⚡ Emojis are an indicator as to which courses are important for your goal. The more ⚡ Emojis, the more important
 					the course is for your goal. Courses with lots of ECTS, in groups with few total ECTS have the largest impact.
 					<br />

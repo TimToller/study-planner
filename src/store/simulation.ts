@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
-import { round, weightedAverage } from "@/lib/utils";
+import { roundGrade, weightedAverage } from "@/lib/utils";
 import { CourseGrading } from "@/types/courses";
 
 import { courseGroupsAtom, rawCoursesAtom } from "@/store/settings";
@@ -83,8 +83,8 @@ export const groupStatsAtom = atom((get) => {
 
 		const optimisticAverage = totalECTS > 0 ? (gradedSum + 1 * ungradedECTS) / totalECTS : NaN;
 
-		const rounded = round(average, 0);
-		const optimisticRounded = round(optimisticAverage, 0);
+		const rounded = roundGrade(average);
+		const optimisticRounded = roundGrade(optimisticAverage);
 
 		return {
 			name: group.name,
@@ -100,6 +100,7 @@ export const groupStatsAtom = atom((get) => {
 
 export const passedWithDistinctionSimAtom = atom((get) => {
 	const grouped = get(groupStatsAtom)
+		.filter((g) => g.name !== "Free Elective")
 		.map((g) => g.rounded)
 		.filter((a) => !isNaN(a));
 
@@ -125,7 +126,7 @@ export const simulationGradesAverageAtom = atom((get) => {
 		.map((g) => g.average)
 		.filter((a) => !isNaN(a));
 	const groupAverage =
-		groupAverages.length > 0 ? groupAverages.reduce((sum, a) => sum + Math.round(a), 0) / groupAverages.length : NaN;
+		groupAverages.length > 0 ? groupAverages.reduce((sum, a) => sum + roundGrade(a), 0) / groupAverages.length : NaN;
 
 	return { courseAverage, groupAverage };
 });
@@ -144,6 +145,7 @@ export const simulationGoalReachableAtom = atom((get) => {
 	}
 
 	const groups = get(groupStatsAtom);
+	const distinctionGroups = groups.filter((g) => g.name !== "Free Elective");
 	const reasons: string[] = [];
 
 	if (goal === "allA") {
@@ -156,16 +158,16 @@ export const simulationGoalReachableAtom = atom((get) => {
 		return reasons.length > 0 ? ({ reachable: false, reasons } as const) : ({ reachable: true, reasons: [] } as const);
 	}
 
-	const tooHigh = groups.find((g) => g.optimisticRounded >= 3);
+	const tooHigh = distinctionGroups.find((g) => g.optimisticRounded >= 3);
 	if (tooHigh) {
 		reasons.push(
 			`Group “${tooHigh.name}” would end up rounding to ${tooHigh.optimisticRounded}, even if every missing course were a 1.`
 		);
 	}
 
-	const countOnes = groups.filter((g) => g.optimisticRounded === 1).length;
-	if (!(countOnes > groups.length / 2)) {
-		reasons.push(`Only ${countOnes} out of ${groups.length} groups would round to 1 (optimistically).`);
+	const countOnes = distinctionGroups.filter((g) => g.optimisticRounded === 1).length;
+	if (!(countOnes > distinctionGroups.length / 2)) {
+		reasons.push(`Only ${countOnes} out of ${distinctionGroups.length} groups would round to 1 (optimistically).`);
 	}
 
 	if (reasons.length > 0) {
