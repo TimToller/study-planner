@@ -28,7 +28,7 @@ export default function CourseTable() {
 
 	const [selectedTypes, setSelectedTypes] = useAtom(selectedTypesAtom);
 	const [selectedGroups, setSelectedGroups] = useAtom(selectedGroupsAtom);
-  const [selectedGrades, setSelectedGrades] = useAtom(selectedGradesAtom);
+	const [selectedGrades, setSelectedGrades] = useAtom(selectedGradesAtom);
 
 	const filteredCourses = useMemo(() => {
 		let filtered = [...courses];
@@ -57,9 +57,9 @@ export default function CourseTable() {
 			filtered = filtered.filter((course) => selectedGroups.includes(course.group));
 		}
 
-    if (selectedGrades.length > 0) {
-      filtered = filtered.filter((course) => selectedGrades.includes(course.grade));
-    }
+		if (selectedGrades.length > 0) {
+			filtered = filtered.filter((course) => selectedGrades.includes(course.grade));
+		}
 
 		if (sortField) {
 			filtered.sort((a, b) => {
@@ -119,27 +119,27 @@ export default function CourseTable() {
 							<SheetTitle>Filters</SheetTitle>
 						</SheetHeader>
 						<div className="p-4 space-y-4 text-foreground">
-              <div className="gap-2 flex flex-col">
-                <h4 className="text-sm font-semibold">Grade</h4>
-                {[1, 2, 3, 4, 5, undefined].map((type) => (
-                  <div key={type} className="flex items-center gap-2 flex-row">
-                    <Checkbox
-                      checked={selectedGrades.includes(type)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedGrades((prev) => [...prev, type]);
-                        } else {
-                          setSelectedGrades((prev) => prev.filter((t) => t !== type));
-                        }
-                      }}
-                      id="{type}"
-                    />
-                    <Label htmlFor="{type}" className="">
-                      {type === undefined ? "ungraded" : type}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+							<div className="gap-2 flex flex-col">
+								<h4 className="text-sm font-semibold">Grade</h4>
+								{[1, 2, 3, 4, 5, undefined].map((type) => (
+								<div key={type} className="flex items-center gap-2 flex-row">
+									<Checkbox
+									checked={selectedGrades.includes(type)}
+									onCheckedChange={(checked) => {
+										if (checked) {
+										setSelectedGrades((prev) => [...prev, type]);
+										} else {
+										setSelectedGrades((prev) => prev.filter((t) => t !== type));
+										}
+									}}
+									id="{type}"
+									/>
+									<Label htmlFor="{type}" className="">
+									{type === undefined ? "ungraded" : type}
+									</Label>
+								</div>
+								))}
+							</div>
 							<div className="gap-2 flex flex-col">
 								<h4 className="text-sm font-semibold">Course Type</h4>
 								{["UE", "VL", "PR", "SE", "KV"].map((type) => (
