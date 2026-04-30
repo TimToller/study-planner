@@ -1,12 +1,13 @@
 import KusssImportDialog from "@/components/kusss-import-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ProgramToggle } from "@/components/program-toggle.tsx";
+import ShareButton from "@/components/share-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
+import { cn, downloadJSON } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
 import { exportAtom, programAtom, rawCoursesAtom, startingSemesterAtom } from "@/store/settings";
@@ -30,14 +31,7 @@ export default function SettingsScreen() {
 	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
 	const exportFile = () => {
-		const data = JSON.stringify(exportData);
-		const blob = new Blob([data], { type: "application/json" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = "StudyPlanner.json";
-		a.click();
-		URL.revokeObjectURL(url);
+		downloadJSON(exportData, "StudyPlanner.json");
 		setHasBackuped(true);
 	};
 
@@ -117,7 +111,8 @@ export default function SettingsScreen() {
 					<CardDescription>Import, export and share your data.</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
-					<Input type="file" onChange={(e) => importFile(e.target.files?.item(0))} accept=".json" />
+					<Label htmlFor="json-import">Import JSON File</Label>
+					<Input type="file" id="json-import" onChange={(e) => importFile(e.target.files?.item(0))} accept=".json" />
 					<KusssImportDialog
 						rawCourses={rawCourses}
 						startingSemester={startingSemester}
@@ -146,9 +141,10 @@ export default function SettingsScreen() {
 							toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
 						}}
 					/>
-					<Button onClick={exportFile}>
+					<Button onClick={exportFile} variant={"outline"}>
 						<FileUp /> Export
 					</Button>
+					<ShareButton />
 				</CardContent>
 			</Card>
 			<Card className="">

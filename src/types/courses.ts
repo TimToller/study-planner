@@ -1,4 +1,9 @@
-export type SemesterType = "WS" | "SS";
+export const SemesterType = ["WS", "SS"] as const;
+export type SemesterType = (typeof SemesterType)[number];
+
+export const TYPE_MAP = ["UE", "VL", "PR", "SE", "KV"] as const;
+export type CourseType = (typeof TYPE_MAP)[number];
+
 export interface Semester {
 	year: number;
 	type: SemesterType;
@@ -12,7 +17,7 @@ export interface Course<Name extends string> {
 	plannedSemester?: number | "accredited";
 	grade?: number;
 	legacyNames?: string[];
-	type: "UE" | "VL" | "PR" | "SE" | "KV";
+	type: CourseType;
 	group: string;
 	notUsedForDistinction?: boolean;
 }
@@ -36,5 +41,5 @@ export interface CustomCourse {
 	name: string;
 	variant: "Free Elective" | "Area of Specialization";
 	ects: number;
-	type: "UE" | "VL" | "PR" | "SE" | "KV";
+	type: CourseType;
 }

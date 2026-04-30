@@ -24,7 +24,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
-import CustomCourseForm from "./custom-course-form";
+import CustomCourseForm, { VARIANT_MAP } from "./custom-course-form";
 
 function DragItem({ course }: { course: Course }) {
 	if (!course) return null;
@@ -38,7 +38,7 @@ function DragItem({ course }: { course: Course }) {
 					`${course.ects} ECTS`,
 					course.available,
 					course.grade !== undefined && `Grade: ${course.grade}`,
-					(course.group === "Free Elective" || course.group === "Area of Specialization") && course.group,
+					VARIANT_MAP.includes(course.group) && course.group,
 				]
 					.filter((e) => e !== false && e !== undefined)
 					.join(" | ")}
@@ -109,13 +109,13 @@ function SortableItem({
 							`${course.ects} ECTS`,
 							course.available,
 							course.grade !== undefined && `Grade: ${course.grade}`,
-							(course.group === "Free Elective" || course.group === "Area of Specialization") && course.group,
+							VARIANT_MAP.includes(course.group) && course.group,
 						]
 							.filter((e) => e !== false && e !== undefined)
 							.join(" | ")}
 					</div>
 				</div>
-				{(course.group === "Free Elective" || course.group === "Area of Specialization") && (
+				{VARIANT_MAP.includes(course.group) && (
 					<Button
 						size={"icon"}
 						variant={"destructive"}

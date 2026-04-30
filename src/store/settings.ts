@@ -11,7 +11,9 @@ import { dependencies as aiDependencies } from "@/data/ai/dependencies.ts";
 
 import { courseGroups as csCourseGroups, rawCourses as csRawCourses } from "@/data/cs/courses.ts";
 import { dependencies as csDependencies } from "@/data/cs/dependencies.ts";
+import { compactSettings, decompactSettings } from "@/lib/compression";
 import { Dependencies } from "@/types/dependencies";
+import LZString from "lz-string";
 import { customCoursesAtom } from "./customCourses";
 
 export const exportAtom = atom(
@@ -21,22 +23,21 @@ export const exportAtom = atom(
 		const settings = get(settingsAtom);
 		const customCourses = get(customCoursesAtom);
 
-		return {
+		const exportData = {
 			grades,
 			planning,
 			settings,
 			customCourses,
 		};
+		const compacted = compactSettings(exportData);
+		const origin = typeof window !== "undefined" ? window.location.origin : (import.meta.env.VITE_APP_URL ?? "");
+		const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(compacted));
+		return { ...exportData, link: `${origin}/study-planner/?share=${compressed}` };
 	},
 	(_get, set, data: string) => {
 		if (!data) return;
 		try {
-			const { grades, planning, settings, customCourses } = JSON.parse(data) as {
-				grades: CourseGrading[];
-				planning: CoursePlan[];
-				settings: Settings;
-				customCourses?: CustomCourse[];
-			};
+			const { grades, planning, settings, customCourses } = decompactSettings(data);
 
 			set(onboardingAtom, true);
 			set(gradesAtom, grades);
@@ -50,13 +51,21 @@ export const exportAtom = atom(
 	},
 );
 
-export type Program = "AI" | "CS";
+export const ProgramMap = ["AI", "CS"] as const;
+export type Program = (typeof ProgramMap)[number];
 export type Settings = {
 	startingSemester: Semester;
 	ignoreGraded: boolean;
 	program: Program;
 	onboardingCompleted: boolean;
 };
+
+export interface ExportSettings {
+	grades: CourseGrading[];
+	planning: CoursePlan[];
+	settings: Settings;
+	customCourses?: CustomCourse[];
+}
 
 export const settingsAtom = atomWithStorage<Settings>("settings", {
 	startingSemester: getCurrentSemester(),

@@ -1,5 +1,6 @@
 "use client";
 import { customCoursesAtom } from "@/store/customCourses";
+import { TYPE_MAP } from "@/types/courses";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtom } from "jotai";
 import { useState } from "react";
@@ -11,20 +12,23 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-const variants = ["Free Elective", "Area of Specialization"] as const;
-const types = ["UE", "VL", "PR", "SE", "KV"] as const;
+export const VARIANT_MAP = ["Free Elective", "Area of Specialization"] as const;
+export type Variant = (typeof VARIANT_MAP)[number];
 
 const courseSchema = z.object({
 	name: z.string().min(1, "Name is required"),
-	ects: z.preprocess((val) => {
-		if (typeof val === "string" || typeof val === "number") {
-			const parsed = parseFloat(val as string);
-			return isNaN(parsed) ? undefined : parsed;
-		}
-		return val;
-	}, z.number().min(0, "ECTS must be at least 0")),
-	variant: z.enum(variants),
-	type: z.enum(types),
+	ects: z.preprocess(
+		(val) => {
+			if (typeof val === "string" || typeof val === "number") {
+				const parsed = parseFloat(val as string);
+				return isNaN(parsed) ? undefined : parsed;
+			}
+			return val;
+		},
+		z.number().min(0, "ECTS must be at least 0"),
+	),
+	variant: z.enum(VARIANT_MAP),
+	type: z.enum(TYPE_MAP),
 });
 
 type CourseFormValues = z.infer<typeof courseSchema>;
@@ -106,7 +110,7 @@ export default function CustomCourseForm() {
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												{variants.map((variant) => (
+												{VARIANT_MAP.map((variant) => (
 													<SelectItem key={variant} value={variant}>
 														{variant.charAt(0).toUpperCase() + variant.slice(1)}
 													</SelectItem>
@@ -130,7 +134,7 @@ export default function CustomCourseForm() {
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												{types.map((type) => (
+												{TYPE_MAP.map((type) => (
 													<SelectItem key={type} value={type}>
 														{type}
 													</SelectItem>

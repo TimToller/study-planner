@@ -1,5 +1,6 @@
 import { useAtom } from "jotai";
 import Footer from "./components/footer";
+import ShareImportDialog from "./components/share-import-dialog";
 import { ThemeProvider } from "./components/theme-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import BoardScreen from "./screens/board-screen";
@@ -15,6 +16,7 @@ function App() {
 	return (
 		<main className="flex flex-col items-center dark:bg-gray-900">
 			<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+				<ShareImportDialog />
 				{!onboardingCompleted ? (
 					<OnboardingScreen />
 				) : (
