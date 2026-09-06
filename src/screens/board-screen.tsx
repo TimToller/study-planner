@@ -83,7 +83,9 @@ function BoldText({ text }: { text: string }) {
 
   return (
     <span>
-      {parts.map((part, index) => (part.startsWith("**") && part.endsWith("**") ? <strong key={index}>{part.slice(2, -2)}</strong> : part))}
+      {parts.map((part, index) =>
+        part.startsWith("**") && part.endsWith("**") ? <strong key={index}>{part.slice(2, -2)}</strong> : part,
+      )}
     </span>
   );
 }

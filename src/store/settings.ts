@@ -107,7 +107,9 @@ export const onboardingAtom = atom(
     set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
   },
 );
-export const courseGroupsAtom = atom<readonly CourseGroup<string>[]>((get) => (get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups));
+export const courseGroupsAtom = atom<readonly CourseGroup<string>[]>((get) =>
+  get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
+);
 
 export const rawCoursesAtom = atom<Course<string>[]>((get) => {
   const baseCourses = get(programAtom) == "AI" ? aiRawCourses : csRawCourses;

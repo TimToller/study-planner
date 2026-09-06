@@ -13,7 +13,14 @@ const SECTION_HEADER_HEIGHT = 72;
 type PlannedCourse = Course & { plannedSemester: number | "accredited" };
 type PlanSection = { key: string; title: string; courses: PlannedCourse[] };
 
-const roundedRect = (context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
+const roundedRect = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) => {
   context.beginPath();
   context.roundRect(x, y, width, height, radius);
 };
@@ -21,14 +28,17 @@ const roundedRect = (context: CanvasRenderingContext2D, x: number, y: number, wi
 const fitText = (context: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   if (context.measureText(text).width <= maxWidth) return text;
   let shortened = text;
-  while (shortened.length > 1 && context.measureText(`${shortened}…`).width > maxWidth) shortened = shortened.slice(0, -1);
+  while (shortened.length > 1 && context.measureText(`${shortened}…`).width > maxWidth)
+    shortened = shortened.slice(0, -1);
   return `${shortened}…`;
 };
 
 const getSections = (courses: Course[], startingSemester: Semester): PlanSection[] => {
   const plannedCourses = courses.filter((course): course is PlannedCourse => course.plannedSemester !== undefined);
   const semesterNumbers = Array.from(
-    new Set(plannedCourses.flatMap((course) => (typeof course.plannedSemester === "number" ? [course.plannedSemester] : []))),
+    new Set(
+      plannedCourses.flatMap((course) => (typeof course.plannedSemester === "number" ? [course.plannedSemester] : [])),
+    ),
   ).sort((a, b) => a - b);
   const sections = semesterNumbers.map((semester) => ({
     key: `semester-${semester}`,
@@ -40,7 +50,8 @@ const getSections = (courses: Course[], startingSemester: Semester): PlanSection
   return sections;
 };
 
-const sectionHeight = (section: PlanSection) => SECTION_HEADER_HEIGHT + Math.max(section.courses.length, 1) * COURSE_HEIGHT + 20;
+const sectionHeight = (section: PlanSection) =>
+  SECTION_HEADER_HEIGHT + Math.max(section.courses.length, 1) * COURSE_HEIGHT + 20;
 
 export async function createPlanImage({
   courses,
@@ -54,10 +65,13 @@ export async function createPlanImage({
   await document.fonts?.ready;
   const sections = getSections(courses, startingSemester);
   const rows: PlanSection[][] = [];
-  for (let index = 0; index < sections.length; index += COLUMN_COUNT) rows.push(sections.slice(index, index + COLUMN_COUNT));
+  for (let index = 0; index < sections.length; index += COLUMN_COUNT)
+    rows.push(sections.slice(index, index + COLUMN_COUNT));
   const contentTop = OUTER_PADDING;
   const footerHeight = 80;
-  const contentHeight = sections.length ? rows.reduce((total, row) => total + Math.max(...row.map(sectionHeight)) + SECTION_GAP, 0) : 230;
+  const contentHeight = sections.length
+    ? rows.reduce((total, row) => total + Math.max(...row.map(sectionHeight)) + SECTION_GAP, 0)
+    : 230;
   const imageHeight = contentTop + contentHeight + footerHeight;
   const appUrl = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
   const canvas = document.createElement("canvas");
@@ -127,6 +141,9 @@ export async function createPlanImage({
   context.textAlign = "right";
   context.fillText(`Created with ${appUrl}`, IMAGE_WIDTH - OUTER_PADDING, imageHeight - 34);
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not create the plan image."))), "image/png");
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("Could not create the plan image."))),
+      "image/png",
+    );
   });
 }

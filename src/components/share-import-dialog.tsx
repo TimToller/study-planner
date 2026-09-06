@@ -74,8 +74,8 @@ export default function ShareImportDialog() {
         <DialogHeader>
           <DialogTitle>Import shared data?</DialogTitle>
           <DialogDescription>
-            This will override your existing data (grades, planning, settings, and custom courses). Download a backup first if you want to
-            keep your current setup.
+            This will override your existing data (grades, planning, settings, and custom courses). Download a backup
+            first if you want to keep your current setup.
           </DialogDescription>
         </DialogHeader>
 

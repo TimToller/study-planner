@@ -49,7 +49,12 @@ export const compactSettings = (settings: ExportSettings): CompactV1 => {
   };
 
   if (settings.customCourses?.length) {
-    compact.x = settings.customCourses.map((cc) => [cc.name, VARIANT_MAP.indexOf(cc.variant), cc.ects, TYPE_MAP.indexOf(cc.type)]);
+    compact.x = settings.customCourses.map((cc) => [
+      cc.name,
+      VARIANT_MAP.indexOf(cc.variant),
+      cc.ects,
+      TYPE_MAP.indexOf(cc.type),
+    ]);
   }
 
   return compact;

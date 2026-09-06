@@ -41,7 +41,9 @@ export function evaluateSteop(
   const rule = STEOP_RULES[program];
   const coreCourses = courses.filter((course) => course.steop === "core");
   const coreCourseIds = new Set(coreCourses.map((course) => course.id));
-  const allowedAdditionalCourseIds = new Set(courses.filter((course) => course.steop === "additional").map((course) => course.id));
+  const allowedAdditionalCourseIds = new Set(
+    courses.filter((course) => course.steop === "additional").map((course) => course.id),
+  );
   const coursesById = new Map(courses.map((course) => [course.id, course]));
   const plansByCourseId = new Map(planning.map((plan) => [plan.name, plan.plannedSemester]));
   const gradesByCourseId = new Map(grades.map((grade) => [grade.name, grade.grade]));
@@ -63,7 +65,11 @@ export function evaluateSteop(
   let completionSemester: number | null = completedECTS >= rule.requiredECTS ? 0 : null;
 
   const plannedSemesters = Array.from(
-    new Set(planning.map((plan) => plan.plannedSemester).filter((semester): semester is number => typeof semester === "number")),
+    new Set(
+      planning
+        .map((plan) => plan.plannedSemester)
+        .filter((semester): semester is number => typeof semester === "number"),
+    ),
   ).sort((a, b) => a - b);
 
   for (const semester of plannedSemesters) {
@@ -87,8 +93,13 @@ export function evaluateSteop(
     .filter((plan) => !coreCourseIds.has(plan.name))
     .map((plan) => coursesById.get(plan.name))
     .filter((course): course is Course<string> => course !== undefined);
-  const restrictedCourses = additionalCoursesBeforeCompletion.filter((course) => !allowedAdditionalCourseIds.has(course.id));
-  const additionalECTSBeforeCompletion = additionalCoursesBeforeCompletion.reduce((total, course) => total + course.ects, 0);
+  const restrictedCourses = additionalCoursesBeforeCompletion.filter(
+    (course) => !allowedAdditionalCourseIds.has(course.id),
+  );
+  const additionalECTSBeforeCompletion = additionalCoursesBeforeCompletion.reduce(
+    (total, course) => total + course.ects,
+    0,
+  );
   const plannedOrCompletedCourseIds = new Set([...alreadyCompletedCourseIds, ...planning.map((plan) => plan.name)]);
   const unplannedCoreCourses = coreCourses.filter((course) => !plannedOrCompletedCourseIds.has(course.id));
 

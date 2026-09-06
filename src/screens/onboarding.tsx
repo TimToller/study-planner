@@ -59,7 +59,10 @@ export default function OnboardingScreen() {
     if (planning.length === 0) {
       const semesterOffset = semester === "SS" ? 1 : 0;
       const recommendedPlan = (program === "AI" ? aiRawCourses : csRawCourses)
-        .filter((course): course is (typeof aiRawCourses)[number] & { recommendedSemester: number } => course.recommendedSemester !== null)
+        .filter(
+          (course): course is (typeof aiRawCourses)[number] & { recommendedSemester: number } =>
+            course.recommendedSemester !== null,
+        )
         .map((course) => ({
           name: course.name,
           plannedSemester: course.recommendedSemester + semesterOffset,
@@ -76,7 +79,10 @@ export default function OnboardingScreen() {
   return (
     <div className="w-full min-h-screen flex items-center flex-col p-3 sm:p-7 justify-center bg-gray-50">
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)} className="max-w-md w-full space-y-8 bg-white p-4 sm:p-6 rounded-2xl shadow-md">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="max-w-md w-full space-y-8 bg-white p-4 sm:p-6 rounded-2xl shadow-md"
+        >
           {/* --- Section: My Program is: --- */}
           <div className="space-y-2">
             <h3 className="text-lg font-semibold">My Program is:</h3>

@@ -10,7 +10,11 @@ interface CustomProgressProps extends React.ComponentPropsWithoutRef<typeof Prog
 }
 const Progress = React.forwardRef<React.ElementRef<typeof ProgressPrimitive.Root>, CustomProgressProps>(
   ({ className, value, indicatorColor = "bg-gray-800", ...props }, ref) => (
-    <ProgressPrimitive.Root ref={ref} className={cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className)} {...props}>
+    <ProgressPrimitive.Root
+      ref={ref}
+      className={cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className)}
+      {...props}
+    >
       <ProgressPrimitive.Indicator
         className={`h-full w-full flex-1  transition-all ${indicatorColor}`}
         style={{ transform: `translateX(-${100 - (value || 0)}%)` }}

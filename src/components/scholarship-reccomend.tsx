@@ -1,6 +1,11 @@
 import { formatSemester } from "@/lib/semester";
 import { cn, round } from "@/lib/utils";
-import { isScholarshipApplicationPeriod, recentCourseAverageAtom, SCHOLARSHIP_CHANCES, type ScholarshipChance } from "@/store/scholarship";
+import {
+  isScholarshipApplicationPeriod,
+  recentCourseAverageAtom,
+  SCHOLARSHIP_CHANCES,
+  type ScholarshipChance,
+} from "@/store/scholarship";
 import { startingSemesterAtom } from "@/store/settings";
 import { useAtom } from "jotai";
 import { CalendarCheck, CalendarX, ExternalLink, Info } from "lucide-react";
@@ -36,12 +41,13 @@ export default function ScholarshipRecommendation() {
           <>
             <p>
               Looking at the past two semesters {formatSemester(latestSemester, startSemester, { simple: true })} &{" "}
-              {formatSemester(latestSemester - 1, startSemester, { simple: true })} you appear to have a course average of{" "}
-              <b>{round(average)}</b> and completed <b>{ects}</b> ECTS.
+              {formatSemester(latestSemester - 1, startSemester, { simple: true })} you appear to have a course average
+              of <b>{round(average)}</b> and completed <b>{ects}</b> ECTS.
             </p>
             <p>
-              With these results, you probably have <span className={cn("font-bold", chanceColorClasses[chances])}>{chances}</span> chances
-              of receiving a merit scholarship (750€–1500€).
+              With these results, you probably have{" "}
+              <span className={cn("font-bold", chanceColorClasses[chances])}>{chances}</span> chances of receiving a
+              merit scholarship (750€–1500€).
             </p>
           </>
         ) : (
@@ -50,7 +56,9 @@ export default function ScholarshipRecommendation() {
       </header>
       <Alert className={applicationPeriodOpen ? "border-emerald-500/60" : undefined}>
         {applicationPeriodOpen ? <CalendarCheck className="h-4 w-4" /> : <CalendarX className="h-4 w-4" />}
-        <AlertTitle>{applicationPeriodOpen ? "Application reminder is active" : "Outside the application reminder period"}</AlertTitle>
+        <AlertTitle>
+          {applicationPeriodOpen ? "Application reminder is active" : "Outside the application reminder period"}
+        </AlertTitle>
         <AlertDescription>
           {applicationPeriodOpen
             ? "It is currently October 1–31. Check the current requirements and submit your merit scholarship application in time."
@@ -61,13 +69,18 @@ export default function ScholarshipRecommendation() {
         <Info className="h-4 w-4" />
         <AlertTitle>Further Info</AlertTitle>
         <AlertDescription>
-          Notice that getting such a scholarship is <b>highly dependent on different factors</b> like how many other students are applying
-          and the overall budget for scholarships, this is just a <b>very rough estimate</b> and not a guarantee. The real current formula
-          for calculating ranking scores of students is not very transparent and rather complicated. Typically the application period for
-          merit scholarships is at the start of October, but it's best to confirm the exact dates and requirements well in advance.
+          Notice that getting such a scholarship is <b>highly dependent on different factors</b> like how many other
+          students are applying and the overall budget for scholarships, this is just a <b>very rough estimate</b> and
+          not a guarantee. The real current formula for calculating ranking scores of students is not very transparent
+          and rather complicated. Typically the application period for merit scholarships is at the start of October,
+          but it's best to confirm the exact dates and requirements well in advance.
           <div className="mt-4">
             <Button asChild>
-              <a href="https://www.jku.at/en/degree-programs/students/scholarships/merit-scholarships/" target="_blank" rel="noreferrer">
+              <a
+                href="https://www.jku.at/en/degree-programs/students/scholarships/merit-scholarships/"
+                target="_blank"
+                rel="noreferrer"
+              >
                 View official scholarship information
                 <ExternalLink className="ml-2 h-4 w-4" />
               </a>

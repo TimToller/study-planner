@@ -45,7 +45,9 @@ export const groupGradesAverageAtom = atom((get) => {
   const grades = get(gradesAtom).filter((g) => g.grade !== undefined);
   const courses = get(rawCoursesAtom);
   const requiredECTSByGroup = new Map<string, number>(Object.entries(GROUP_REQUIRED_ECTS));
-  const groupNames = Array.from(new Set([...get(courseGroupsAtom).map((group) => group.name), ...requiredECTSByGroup.keys()]));
+  const groupNames = Array.from(
+    new Set([...get(courseGroupsAtom).map((group) => group.name), ...requiredECTSByGroup.keys()]),
+  );
 
   return groupNames.map((groupName) => {
     const groupCourses = courses.filter((course) => course.group === groupName);
@@ -60,7 +62,8 @@ export const groupGradesAverageAtom = atom((get) => {
           weight: get(ectsMapAtom).get(g.name) ?? 0,
         })),
       ),
-      totalECTS: requiredECTSByGroup.get(groupName) ?? groupCourses.map((course) => course.ects).reduce((a, b) => a + b, 0),
+      totalECTS:
+        requiredECTSByGroup.get(groupName) ?? groupCourses.map((course) => course.ects).reduce((a, b) => a + b, 0),
       gradedECTS: groupCourses
         .filter((course) => grades.some((grade) => grade.name === course.name))
         .map((course) => course.ects)

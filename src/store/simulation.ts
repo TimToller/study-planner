@@ -125,7 +125,8 @@ export const simulationGradesAverageAtom = atom((get) => {
   const groupAverages = get(groupStatsAtom)
     .map((g) => g.average)
     .filter((a) => !isNaN(a));
-  const groupAverage = groupAverages.length > 0 ? groupAverages.reduce((sum, a) => sum + roundGrade(a), 0) / groupAverages.length : NaN;
+  const groupAverage =
+    groupAverages.length > 0 ? groupAverages.reduce((sum, a) => sum + roundGrade(a), 0) / groupAverages.length : NaN;
 
   return { courseAverage, groupAverage };
 });
@@ -150,14 +151,18 @@ export const simulationGoalReachableAtom = atom((get) => {
   if (goal === "allA") {
     const notA = groups.find((g) => g.optimisticRounded > 1);
     if (notA) {
-      reasons.push(`Group “${notA.name}” would end up rounding to ${notA.optimisticRounded}, even if every missing course were a 1.`);
+      reasons.push(
+        `Group “${notA.name}” would end up rounding to ${notA.optimisticRounded}, even if every missing course were a 1.`,
+      );
     }
     return reasons.length > 0 ? ({ reachable: false, reasons } as const) : ({ reachable: true, reasons: [] } as const);
   }
 
   const tooHigh = distinctionGroups.find((g) => g.optimisticRounded >= 3);
   if (tooHigh) {
-    reasons.push(`Group “${tooHigh.name}” would end up rounding to ${tooHigh.optimisticRounded}, even if every missing course were a 1.`);
+    reasons.push(
+      `Group “${tooHigh.name}” would end up rounding to ${tooHigh.optimisticRounded}, even if every missing course were a 1.`,
+    );
   }
 
   const countOnes = distinctionGroups.filter((g) => g.optimisticRounded === 1).length;
@@ -341,7 +346,10 @@ export const setLowerBoundSimulationGradesAtom = atom(null, (get, set) => {
     const filled = computed.flatMap((g) => g.missing.map((m) => ({ name: m.key, grade: 1 })));
     const existingSimMap = new Map(existingSim.map((s) => [s.name, s.grade] as const));
 
-    const merged = [...existingSim.filter((s) => s.grade !== undefined), ...filled.filter((f) => !existingSimMap.has(f.name))];
+    const merged = [
+      ...existingSim.filter((s) => s.grade !== undefined),
+      ...filled.filter((f) => !existingSimMap.has(f.name)),
+    ];
 
     set(simulationGradesAtom, merged);
     return;
@@ -429,7 +437,9 @@ export const courseImportanceAtom = atom<CourseImportance[]>((get) => {
           const ectsShare = c.ects / totalECTS; // share inside its group
 
           // Potential improvement if you score targetGrade in this course
-          const newAvg = isNaN(groupAvg) ? targetGrade : (groupAvg * gradedECTS + targetGrade * c.ects) / (gradedECTS + c.ects);
+          const newAvg = isNaN(groupAvg)
+            ? targetGrade
+            : (groupAvg * gradedECTS + targetGrade * c.ects) / (gradedECTS + c.ects);
           const improvement = isNaN(groupAvg) ? 0 : groupAvg - newAvg;
 
           // final score – tweak formula as you like
@@ -439,7 +449,9 @@ export const courseImportanceAtom = atom<CourseImportance[]>((get) => {
           const reasonLines: string[] = [];
           reasonLines.push(`Worth ${c.ects} ECTS (${Math.round(ectsShare * 100)} % of the ${group.name} group).`);
           if (!isNaN(groupAvg)) {
-            reasonLines.push(`Group average is ${groupAvg.toFixed(2)} → needs -${distance.toFixed(2)} to hit ${targetGrade}.`);
+            reasonLines.push(
+              `Group average is ${groupAvg.toFixed(2)} → needs -${distance.toFixed(2)} to hit ${targetGrade}.`,
+            );
             reasonLines.push(
               `Scoring a ${targetGrade} here would shift the group average by -${improvement.toFixed(2)} to ${newAvg.toFixed(2)}.`,
             );

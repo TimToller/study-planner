@@ -30,7 +30,9 @@ export const roundGrade = (value: number) => {
 export const average = (values: number[]) => values.reduce((acc, v) => acc + v, 0) / values.length;
 
 export const getGroupColor = (group: string) => {
-  const colorPalate = ["#64ade6", "#ddb0f4", "#929489", "#cdf3a9", "#90be6d", "#43aa8b", "#557c93", "#FADA7A"].map((c) => c + "60");
+  const colorPalate = ["#64ade6", "#ddb0f4", "#929489", "#cdf3a9", "#90be6d", "#43aa8b", "#557c93", "#FADA7A"].map(
+    (c) => c + "60",
+  );
   switch (group) {
     case "Bachelor Thesis":
     case "AI Basics and Practical Training":

@@ -1,4 +1,11 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { looksLikeKusssGradeText, parseKusssGradeText } from "@/lib/kusss-import";
 import { Course, CourseGrading, CoursePlan, Semester } from "@/types/courses";
@@ -29,11 +36,15 @@ export default function KusssImportDialog({
   );
 
   const sortedRows = useMemo(
-    () => [...parsedKusss.rows].sort((a, b) => Number(Boolean(a.matchedCourseName)) - Number(Boolean(b.matchedCourseName))),
+    () =>
+      [...parsedKusss.rows].sort((a, b) => Number(Boolean(a.matchedCourseName)) - Number(Boolean(b.matchedCourseName))),
     [parsedKusss.rows],
   );
 
-  const rowsNeedingManual = useMemo(() => parsedKusss.rows.filter((row) => !row.matchedCourseName).length, [parsedKusss.rows]);
+  const rowsNeedingManual = useMemo(
+    () => parsedKusss.rows.filter((row) => !row.matchedCourseName).length,
+    [parsedKusss.rows],
+  );
 
   const tryReadClipboard = async ({ manual }: { manual: boolean }) => {
     if (typeof navigator === "undefined" || !navigator.clipboard?.readText) {
@@ -73,13 +84,20 @@ export default function KusssImportDialog({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>KUSSS text import</DialogTitle>
-          <DialogDescription>Follow the steps below to import grades and course plannings from KUSSS text.</DialogDescription>
+          <DialogDescription>
+            Follow the steps below to import grades and course plannings from KUSSS text.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1 text-sm">
             <p>
               Step 1: Open{" "}
-              <a href="https://www.kusss.jku.at/kusss/gradeinfo.action" target="_blank" rel="noreferrer" className="underline">
+              <a
+                href="https://www.kusss.jku.at/kusss/gradeinfo.action"
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+              >
                 https://www.kusss.jku.at/kusss/gradeinfo.action
               </a>
             </p>
@@ -106,8 +124,8 @@ export default function KusssImportDialog({
           {parsedKusss.rows.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                {parsedKusss.planning.length} course plannings and {parsedKusss.grades.length} grades could be parsed. {rowsNeedingManual}{" "}
-                rows should be done manually.
+                {parsedKusss.planning.length} course plannings and {parsedKusss.grades.length} grades could be parsed.{" "}
+                {rowsNeedingManual} rows should be done manually.
               </p>
               <div className="max-h-80 overflow-auto rounded-md border">
                 <Table>
@@ -129,7 +147,9 @@ export default function KusssImportDialog({
                         <TableCell>{row.date}</TableCell>
                         <TableCell>{row.cleanTitle}</TableCell>
                         <TableCell>{row.gradeLabel}</TableCell>
-                        <TableCell>{row.plannedSemester === "accredited" ? "Accredited" : (row.semesterCode ?? "-")}</TableCell>
+                        <TableCell>
+                          {row.plannedSemester === "accredited" ? "Accredited" : (row.semesterCode ?? "-")}
+                        </TableCell>
                         <TableCell className={!row.matchedCourseName ? "text-destructive font-medium" : undefined}>
                           {row.matchedCourseName ?? "No"}
                         </TableCell>

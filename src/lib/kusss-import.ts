@@ -79,7 +79,9 @@ const cleanTitle = (title: string) =>
 const isRecognizedHeading = (line: string) => {
   const normalized = line.trim().toLowerCase();
   return (
-    normalized === "recognized course certificates (ilas)" || normalized === "recognized assessments" || normalized === "recognized exams"
+    normalized === "recognized course certificates (ilas)" ||
+    normalized === "recognized assessments" ||
+    normalized === "recognized exams"
   );
 };
 
@@ -152,7 +154,11 @@ const resolveCourse = (indexedCourses: IndexedCourse[], type: string, title: str
   return undefined;
 };
 
-export const parseKusssGradeText = (text: string, rawCourses: Course<string>[], startingSemester: Semester): ParsedKusssResult => {
+export const parseKusssGradeText = (
+  text: string,
+  rawCourses: Course<string>[],
+  startingSemester: Semester,
+): ParsedKusssResult => {
   const rows: ParsedKusssRow[] = [];
   const indexedCourses = buildCourseIndex(rawCourses);
 
@@ -213,7 +219,10 @@ export const parseKusssGradeText = (text: string, rawCourses: Course<string>[], 
     name,
     grade,
   }));
-  const planning: CoursePlan[] = Array.from(planningMap.entries()).map(([name, plannedSemester]) => ({ name, plannedSemester }));
+  const planning: CoursePlan[] = Array.from(planningMap.entries()).map(([name, plannedSemester]) => ({
+    name,
+    plannedSemester,
+  }));
 
   return { rows, grades, planning };
 };

@@ -5,7 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { GROUP_REQUIRED_ECTS } from "@/lib/requirements";
 import { average, round, roundGrade } from "@/lib/utils";
-import { courseGradeAverageAtom, groupGradesAverageAtom, groupGradesRoundedAtom, passedWithDistinctionAtom } from "@/store/grades";
+import {
+  courseGradeAverageAtom,
+  groupGradesAverageAtom,
+  groupGradesRoundedAtom,
+  passedWithDistinctionAtom,
+} from "@/store/grades";
 import { personalCoursesAtom } from "@/store/planning";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -28,7 +33,10 @@ export default function GradesScreen() {
   const [{ distinction, moreThanHalfOne, noThree }] = useAtom(passedWithDistinctionAtom);
   const hasCelebratedRef = useRef(false);
 
-  const allCoursesGraded = useMemo(() => courses.length > 0 && courses.every((course) => course.grade !== undefined), [courses]);
+  const allCoursesGraded = useMemo(
+    () => courses.length > 0 && courses.every((course) => course.grade !== undefined),
+    [courses],
+  );
   const requiredGroupsFilled = useMemo(
     () =>
       Object.keys(GROUP_REQUIRED_ECTS).every((groupName) => {
@@ -85,7 +93,8 @@ export default function GradesScreen() {
             <div className="flex flex-row justify-between">
               <h2 className="text-lg">Group Average:</h2>
               <h3 className="text-lg font-bold">
-                {(groupGradesRounded.length && roundGrade(average(groupGradesRounded.map((g) => g.average).filter((g) => !isNaN(g))))) ||
+                {(groupGradesRounded.length &&
+                  roundGrade(average(groupGradesRounded.map((g) => g.average).filter((g) => !isNaN(g))))) ||
                   "-"}
               </h3>
             </div>

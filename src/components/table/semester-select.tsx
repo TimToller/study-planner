@@ -13,7 +13,9 @@ interface SemesterSelectProps {
 const SemesterSelect = React.memo(function SemesterSelect({ semester, onSemesterChange }: SemesterSelectProps) {
   const handleValueChange = useCallback(
     (newSemester: string) => {
-      onSemesterChange(newSemester === "none" ? undefined : newSemester === "accredited" ? "accredited" : parseInt(newSemester, 10));
+      onSemesterChange(
+        newSemester === "none" ? undefined : newSemester === "accredited" ? "accredited" : parseInt(newSemester, 10),
+      );
     },
     [onSemesterChange],
   );

@@ -31,7 +31,11 @@ function App() {
         {!onboardingCompleted ? (
           <OnboardingScreen />
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7"
+          >
             <ScholarshipApplicationBanner onViewScholarship={openScholarship} />
             <header className="flex w-full max-w-5xl flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
               <TabsList className="grid w-full max-w-md flex-1 grid-cols-4">

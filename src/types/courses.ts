@@ -5,7 +5,11 @@ export const TYPE_MAP = ["UE", "VL", "PR", "SE", "KV"] as const;
 export type CourseType = (typeof TYPE_MAP)[number];
 export type SteopRole = "core" | "additional";
 
-export interface CourseSubject<Catalog extends string = string, Key extends string = string, Name extends string = string> {
+export interface CourseSubject<
+  Catalog extends string = string,
+  Key extends string = string,
+  Name extends string = string,
+> {
   readonly catalog: Catalog;
   readonly key: Key;
   readonly name: Name;
@@ -19,7 +23,10 @@ export const defineCourseSubjects = <const Catalog extends string, const Names e
   catalog: Catalog,
   names: Names,
 ): CourseSubjectMap<Catalog, Names> =>
-  Object.fromEntries(Object.entries(names).map(([key, name]) => [key, { catalog, key, name }])) as CourseSubjectMap<Catalog, Names>;
+  Object.fromEntries(Object.entries(names).map(([key, name]) => [key, { catalog, key, name }])) as CourseSubjectMap<
+    Catalog,
+    Names
+  >;
 
 export interface Semester {
   year: number;
@@ -52,7 +59,8 @@ export interface CourseGroup<Name extends string = string> {
 
 export const defineCourseGroups = <const Groups extends readonly CourseGroup<string>[]>(groups: Groups) => groups;
 
-export type CourseSubjectOf<Groups extends readonly CourseGroup<string>[]> = Groups[number]["courses"][number]["subject"];
+export type CourseSubjectOf<Groups extends readonly CourseGroup<string>[]> =
+  Groups[number]["courses"][number]["subject"];
 
 export interface CourseGrading {
   name: string;

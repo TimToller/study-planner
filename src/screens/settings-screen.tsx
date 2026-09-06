@@ -66,7 +66,9 @@ export default function SettingsScreen() {
       <Card className="">
         <CardHeader>
           <CardTitle>Starting Semester</CardTitle>
-          <CardDescription>Specify when you started studying. This will correctly count your first, second etc. semester.</CardDescription>
+          <CardDescription>
+            Specify when you started studying. This will correctly count your first, second etc. semester.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form>
@@ -172,7 +174,8 @@ export default function SettingsScreen() {
           <div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
             <OctagonAlert size={50} />
             <h2 className="text-center font-bold m-2">
-              Changing your Bachelor's Program will reset your data! Back up (Export) your Data before abandoning your current program!
+              Changing your Bachelor's Program will reset your data! Back up (Export) your Data before abandoning your
+              current program!
             </h2>
             <Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
               I have enough of {program}!

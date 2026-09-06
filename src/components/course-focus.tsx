@@ -99,8 +99,8 @@ export default function CourseFocus() {
         <header className="flex flex-col gap-2">
           <h2 className="text-2xl font-bold">Course Focus</h2>
           <p>
-            Start filling in your grades in the List section to use the Course Focus tool. It will help you simulate which grades you would
-            need to reach your goals and which courses to focus on.
+            Start filling in your grades in the List section to use the Course Focus tool. It will help you simulate
+            which grades you would need to reach your goals and which courses to focus on.
           </p>
         </header>
       </div>
@@ -121,33 +121,40 @@ export default function CourseFocus() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <h2 className="text-2xl font-bold">Course Focus</h2>
-        <p>Use the planner below to "Simulate" which grades you would need to reach your goals and which courses to focus on.</p>
+        <p>
+          Use the planner below to "Simulate" which grades you would need to reach your goals and which courses to focus
+          on.
+        </p>
       </header>
 
       <Alert>
         <Info className="h-4 w-4" />
         <AlertTitle>Usage</AlertTitle>
         <AlertDescription>
-          Adjust hypothetical grades in the dropdowns. Collapsible headers are color-coded by their current rounded average. You will see
-          both the average of each group and the group upper-bound, i.e. the average if all remaining courses are graded with a 1.
+          Adjust hypothetical grades in the dropdowns. Collapsible headers are color-coded by their current rounded
+          average. You will see both the average of each group and the group upper-bound, i.e. the average if all
+          remaining courses are graded with a 1.
           <br />
           <br />
           Grade rounding uses half-down ties: values ending in .5 round down (e.g. 1.5 -&gt; 1).
           <br />
           <br />
-          The Free Elective group does not influence the Passed with Distinction check, but it does influence the overall course average.
+          The Free Elective group does not influence the Passed with Distinction check, but it does influence the
+          overall course average.
           <br />
           <br />
-          The ⚡ Emojis are an indicator as to which courses are important for your goal. The more ⚡ Emojis, the more important the course
-          is for your goal. Courses with lots of ECTS, in groups with few total ECTS have the largest impact.
+          The ⚡ Emojis are an indicator as to which courses are important for your goal. The more ⚡ Emojis, the more
+          important the course is for your goal. Courses with lots of ECTS, in groups with few total ECTS have the
+          largest impact.
           <br />
           <br />
-          Setting the <b>Lower bound grades</b> essentially tries to fill the "un-simulated" grades in such a way, that you reach your goal
-          with the lowest possible grades.
+          Setting the <b>Lower bound grades</b> essentially tries to fill the "un-simulated" grades in such a way, that
+          you reach your goal with the lowest possible grades.
           <br />
           <br />
-          Use this tool with caution and only as a rough guide, <b>I can not guarantee that every calculation was done correctly</b>. If you
-          have found a bug or know a way how to improve this, please create a PR
+          Use this tool with caution and only as a rough guide,{" "}
+          <b>I can not guarantee that every calculation was done correctly</b>. If you have found a bug or know a way
+          how to improve this, please create a PR
           <a href="https://github.com/TimToller/study-planner/compare" className="underline ml-1">
             here
           </a>
@@ -208,7 +215,9 @@ export default function CourseFocus() {
               {g.rounded !== undefined && !isNaN(g.rounded) && (
                 <>
                   <span className="text-sm font-mono">Ø {g.average?.toPrecision(3)}</span>
-                  {g.average !== g.optimisticAverage && <span className="text-sm font-mono">≥ {g.optimisticAverage?.toPrecision(3)}</span>}
+                  {g.average !== g.optimisticAverage && (
+                    <span className="text-sm font-mono">≥ {g.optimisticAverage?.toPrecision(3)}</span>
+                  )}
                 </>
               )}
               {g.fullyGraded && <span className="text-xs text-gray-500">Fully graded</span>}
@@ -240,7 +249,9 @@ export default function CourseFocus() {
                           {c.key}
                           <span className="ml-2 text-xs text-gray-500">{c.ects} ECTS</span>
                           {c.realGrade === undefined && (
-                            <span className="ml-2 text-xs text-gray-500">{"⚡".repeat(Math.ceil(c.importance * 5))}</span>
+                            <span className="ml-2 text-xs text-gray-500">
+                              {"⚡".repeat(Math.ceil(c.importance * 5))}
+                            </span>
                           )}
                         </p>
                         {c.explanation && <p className="text-xs text-gray-600 mt-1">{c.explanation}</p>}

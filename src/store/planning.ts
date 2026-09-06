@@ -115,7 +115,11 @@ export const planningInfoAtom = atom((get) => {
     if (courseData.type === "UE") {
       const courseVL = planning.find((plan) => {
         const plannedCourse = getCourseByName(rawCourses, plan.name);
-        return plannedCourse?.subject === courseData.subject && plan.plannedSemester !== "accredited" && plannedCourse.type === "VL";
+        return (
+          plannedCourse?.subject === courseData.subject &&
+          plan.plannedSemester !== "accredited" &&
+          plannedCourse.type === "VL"
+        );
       });
       const courseVLData = courseVL ? getCourseByName(rawCourses, courseVL.name) : undefined;
 
@@ -133,13 +137,16 @@ export const planningInfoAtom = atom((get) => {
     }
 
     //check dependencies
-    const courseDependencies = get(dependenciesAtom).find((dependency) => dependency.course === courseData.subject)?.dependencies ?? [];
+    const courseDependencies =
+      get(dependenciesAtom).find((dependency) => dependency.course === courseData.subject)?.dependencies ?? [];
     for (const dependency of courseDependencies) {
       const requiredCourses = rawCourses.filter((candidate) => candidate.subject === dependency.course);
       const missingCourses = requiredCourses.filter(
         (c) =>
           !planning.some(
-            (p) => p.name === c.name && (p.plannedSemester === "accredited" || p.plannedSemester! <= (course.plannedSemester as number)!),
+            (p) =>
+              p.name === c.name &&
+              (p.plannedSemester === "accredited" || p.plannedSemester! <= (course.plannedSemester as number)!),
           ),
       );
       if (missingCourses.length > 0) {

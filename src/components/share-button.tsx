@@ -157,9 +157,16 @@ export default function ShareButton({ className, size = "default", variant = "de
           </TabsList>
           <TabsContent value="link" className="space-y-4 pt-2">
             <div className="rounded-lg border bg-muted/30 p-4">
-              <p className="mb-3 text-sm text-muted-foreground">Anyone with this link can import a copy of your current plan.</p>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Anyone with this link can import a copy of your current plan.
+              </p>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Input readOnly value={shareLinkValue} onFocus={(event) => event.currentTarget.select()} aria-label="Share link" />
+                <Input
+                  readOnly
+                  value={shareLinkValue}
+                  onFocus={(event) => event.currentTarget.select()}
+                  aria-label="Share link"
+                />
                 <Button type="button" variant="outline" onClick={copyShareLink}>
                   <Copy /> Copy
                 </Button>
@@ -184,8 +191,15 @@ export default function ShareButton({ className, size = "default", variant = "de
               )}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => void generateImage()} disabled={isGenerating}>
-                {isGenerating ? <Loader2 className="animate-spin" /> : <Image />} {imageBlob ? "Regenerate" : "Generate image"}
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => void generateImage()}
+                disabled={isGenerating}
+              >
+                {isGenerating ? <Loader2 className="animate-spin" /> : <Image />}{" "}
+                {imageBlob ? "Regenerate" : "Generate image"}
               </Button>
               <Button type="button" className="flex-1" onClick={shareImage} disabled={!imageBlob || isGenerating}>
                 <Download /> Share or download

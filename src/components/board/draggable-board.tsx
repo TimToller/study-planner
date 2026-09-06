@@ -7,7 +7,16 @@ import { customCoursesAtom } from "@/store/customCourses";
 import { personalCoursesAtom, planningInfoAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
 import { Course } from "@/types/courses";
-import { DndContext, DragEndEvent, DragOverlay, PointerSensor, UniqueIdentifier, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  PointerSensor,
+  UniqueIdentifier,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAtom } from "jotai";
@@ -21,7 +30,10 @@ import CustomCourseForm, { VARIANT_MAP } from "./custom-course-form";
 function DragItem({ course }: { course: Course }) {
   if (!course) return null;
   return (
-    <div className="p-2 rounded-md shadow-lg cursor-grabbing text-foreground" style={{ backgroundColor: getGroupColor(course.group) }}>
+    <div
+      className="p-2 rounded-md shadow-lg cursor-grabbing text-foreground"
+      style={{ backgroundColor: getGroupColor(course.group) }}
+    >
       <div className="font-medium">{course.name}</div>
       <div className="text-sm">
         {[
@@ -314,14 +326,24 @@ export default function DraggableBoard() {
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold">
                       {column.title}
-                      {totalEcts > 0 && <span className="ml-2 text-sm text-secondary-foreground">(ECTS: {totalEcts})</span>}
+                      {totalEcts > 0 && (
+                        <span className="ml-2 text-sm text-secondary-foreground">(ECTS: {totalEcts})</span>
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="h-full">
                     <DroppableContainer id={column.id}>
-                      <SortableContext items={column.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
+                      <SortableContext
+                        items={column.courses.map((course) => course.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
                         {column.courses.map((course) => (
-                          <SortableItem key={course.id} course={course} containerId={column.id} info={getInfo(course.id)} />
+                          <SortableItem
+                            key={course.id}
+                            course={course}
+                            containerId={column.id}
+                            info={getInfo(course.id)}
+                          />
                         ))}
                       </SortableContext>
                     </DroppableContainer>
@@ -341,7 +363,10 @@ export default function DraggableBoard() {
               className="mx-1 mb-3 w-[calc(100%-0.5rem)]"
             />
             <DroppableContainer id="search">
-              <SortableContext items={visibleAvailableCourses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={visibleAvailableCourses.map((course) => course.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 {visibleAvailableCourses.map((course) => (
                   <SortableItem key={course.id} course={course} containerId="search" />
                 ))}
