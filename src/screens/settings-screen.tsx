@@ -144,7 +144,7 @@ export default function SettingsScreen() {
 					<Button onClick={exportFile} variant={"outline"}>
 						<FileUp /> Export
 					</Button>
-					<ShareButton />
+					<ShareButton variant="outline" className="w-full" />
 				</CardContent>
 			</Card>
 			<Card className="">

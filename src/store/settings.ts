@@ -1,15 +1,28 @@
 import { getCurrentSemester } from "@/lib/semester";
-import { Course, CourseGrading, CourseGroup, CoursePlan, CustomCourse, Semester } from "@/types/courses";
+import {
+  Course,
+  CourseGrading,
+  CourseGroup,
+  CoursePlan,
+  CustomCourse,
+  Semester,
+} from "@/types/courses";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { toast } from "sonner";
 import { gradesAtom } from "./grades";
 import { planningAtom } from "./planning";
 
-import { courseGroups as aiCourseGroups, rawCourses as aiRawCourses } from "@/data/ai/courses";
+import {
+  courseGroups as aiCourseGroups,
+  rawCourses as aiRawCourses,
+} from "@/data/ai/courses";
 import { dependencies as aiDependencies } from "@/data/ai/dependencies.ts";
 
-import { courseGroups as csCourseGroups, rawCourses as csRawCourses } from "@/data/cs/courses.ts";
+import {
+  courseGroups as csCourseGroups,
+  rawCourses as csRawCourses,
+} from "@/data/cs/courses.ts";
 import { dependencies as csDependencies } from "@/data/cs/dependencies.ts";
 import { compactSettings, decompactSettings } from "@/lib/compression";
 import { Dependencies } from "@/types/dependencies";
@@ -17,112 +30,125 @@ import LZString from "lz-string";
 import { customCoursesAtom } from "./customCourses";
 
 export const exportAtom = atom(
-	(get) => {
-		const grades = get(gradesAtom);
-		const planning = get(planningAtom);
-		const settings = get(settingsAtom);
-		const customCourses = get(customCoursesAtom);
+  (get) => {
+    const grades = get(gradesAtom);
+    const planning = get(planningAtom);
+    const settings = get(settingsAtom);
+    const customCourses = get(customCoursesAtom);
 
-		const exportData = {
-			grades,
-			planning,
-			settings,
-			customCourses,
-		};
-		const compacted = compactSettings(exportData);
-		const origin = typeof window !== "undefined" ? window.location.origin : (import.meta.env.VITE_APP_URL ?? "");
-		const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(compacted));
-		return { ...exportData, link: `${origin}/study-planner/?share=${compressed}` };
-	},
-	(_get, set, data: string) => {
-		if (!data) return;
-		try {
-			const { grades, planning, settings, customCourses } = decompactSettings(data);
+    const exportData = {
+      planning,
+      settings,
+      customCourses,
+    };
+    const compactedNoGrades = compactSettings({ ...exportData, grades: [] });
+    const compacted = compactSettings({ ...exportData, grades });
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : (import.meta.env.VITE_APP_URL ?? "");
+    const compressedNoGrades = LZString.compressToEncodedURIComponent(
+      JSON.stringify(compactedNoGrades),
+    );
+    const compressed = LZString.compressToEncodedURIComponent(
+      JSON.stringify(compacted),
+    );
+    return {
+      ...exportData,
+      link: `${origin}/study-planner/?share=${compressed}`,
+      linkWithoutGrades: `${origin}/study-planner/?share=${compressedNoGrades}`,
+    };
+  },
+  (_get, set, data: string) => {
+    if (!data) return;
+    try {
+      const { grades, planning, settings, customCourses } =
+        decompactSettings(data);
 
-			set(onboardingAtom, true);
-			set(gradesAtom, grades);
-			set(planningAtom, planning);
-			set(settingsAtom, settings);
-			set(customCoursesAtom, customCourses ?? []);
-			toast.success("Successfully imported settings");
-		} catch (e) {
-			toast.error(`Failed to import data: ${e}`);
-		}
-	},
+      set(onboardingAtom, true);
+      set(gradesAtom, grades);
+      set(planningAtom, planning);
+      set(settingsAtom, settings);
+      set(customCoursesAtom, customCourses ?? []);
+      toast.success("Successfully imported settings");
+    } catch (e) {
+      toast.error(`Failed to import data: ${e}`);
+    }
+  },
 );
 
 export const ProgramMap = ["AI", "CS"] as const;
 export type Program = (typeof ProgramMap)[number];
 export type Settings = {
-	startingSemester: Semester;
-	ignoreGraded: boolean;
-	program: Program;
-	onboardingCompleted: boolean;
+  startingSemester: Semester;
+  ignoreGraded: boolean;
+  program: Program;
+  onboardingCompleted: boolean;
 };
 
 export interface ExportSettings {
-	grades: CourseGrading[];
-	planning: CoursePlan[];
-	settings: Settings;
-	customCourses?: CustomCourse[];
+  grades: CourseGrading[];
+  planning: CoursePlan[];
+  settings: Settings;
+  customCourses?: CustomCourse[];
 }
 
 export const settingsAtom = atomWithStorage<Settings>("settings", {
-	startingSemester: getCurrentSemester(),
-	ignoreGraded: true,
-	program: "AI",
-	onboardingCompleted: false,
+  startingSemester: getCurrentSemester(),
+  ignoreGraded: true,
+  program: "AI",
+  onboardingCompleted: false,
 });
 
 export const startingSemesterAtom = atom(
-	(get) => get(settingsAtom).startingSemester,
-	(get, set, value: Semester) => {
-		if (!value.type) return;
-		set(settingsAtom, { ...get(settingsAtom), startingSemester: value });
-	},
+  (get) => get(settingsAtom).startingSemester,
+  (get, set, value: Semester) => {
+    if (!value.type) return;
+    set(settingsAtom, { ...get(settingsAtom), startingSemester: value });
+  },
 );
 
 export const ignoreGradedAtom = atom(
-	(get) => get(settingsAtom).ignoreGraded,
-	(get, set, value: boolean) => {
-		set(settingsAtom, { ...get(settingsAtom), ignoreGraded: value });
-	},
+  (get) => get(settingsAtom).ignoreGraded,
+  (get, set, value: boolean) => {
+    set(settingsAtom, { ...get(settingsAtom), ignoreGraded: value });
+  },
 );
 
 export const programAtom = atom(
-	(get) => get(settingsAtom).program ?? "AI",
-	(get, set, value: Program) => {
-		set(settingsAtom, { ...get(settingsAtom), program: value });
-	},
+  (get) => get(settingsAtom).program ?? "AI",
+  (get, set, value: Program) => {
+    set(settingsAtom, { ...get(settingsAtom), program: value });
+  },
 );
 
 export const onboardingAtom = atom(
-	(get) => get(settingsAtom).onboardingCompleted ?? false,
-	(get, set, value: boolean) => {
-		set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
-	},
+  (get) => get(settingsAtom).onboardingCompleted ?? false,
+  (get, set, value: boolean) => {
+    set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
+  },
 );
 export const courseGroupsAtom = atom<readonly CourseGroup<string>[]>((get) =>
-	get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
+  get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
 );
 
 export const rawCoursesAtom = atom<Course<string>[]>((get) => {
-	const baseCourses = get(programAtom) == "AI" ? aiRawCourses : csRawCourses;
-	const customCourses = get(customCoursesAtom);
+  const baseCourses = get(programAtom) == "AI" ? aiRawCourses : csRawCourses;
+  const customCourses = get(customCoursesAtom);
 
-	return [
-		...baseCourses,
-		...customCourses.map((course) => ({
-			...course,
-			subject: { catalog: "custom", key: course.name, name: course.name },
-			name: `${course.type} ${course.name}`,
-			id: `${course.type} ${course.name}`,
-			recommendedSemester: null,
-			group: course.variant,
-		})),
-	];
+  return [
+    ...baseCourses,
+    ...customCourses.map((course) => ({
+      ...course,
+      subject: { catalog: "custom", key: course.name, name: course.name },
+      name: `${course.type} ${course.name}`,
+      id: `${course.type} ${course.name}`,
+      recommendedSemester: null,
+      group: course.variant,
+    })),
+  ];
 });
 
 export const dependenciesAtom = atom<Dependencies<Course["subject"]>>((get) =>
-	get(programAtom) == "AI" ? aiDependencies : csDependencies,
+  get(programAtom) == "AI" ? aiDependencies : csDependencies,
 );

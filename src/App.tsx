@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { useState } from "react";
 import Footer from "./components/footer";
 import ScholarshipApplicationBanner from "./components/scholarship-application-banner";
+import ShareButton from "./components/share-button";
 import ShareImportDialog from "./components/share-import-dialog";
 import { ThemeProvider } from "./components/theme-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
@@ -35,12 +36,15 @@ function App() {
 						onValueChange={setActiveTab}
 						className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7">
 						<ScholarshipApplicationBanner onViewScholarship={openScholarship} />
-						<TabsList className="grid w-full max-w-md grid-cols-4">
-							<TabsTrigger value="board">Board</TabsTrigger>
-							<TabsTrigger value="list">List</TabsTrigger>
-							<TabsTrigger value="grades">Grades</TabsTrigger>
-							<TabsTrigger value="settings">Settings</TabsTrigger>
-						</TabsList>
+						<header className="flex w-full max-w-5xl flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+							<TabsList className="grid w-full max-w-md flex-1 grid-cols-4">
+								<TabsTrigger value="board">Board</TabsTrigger>
+								<TabsTrigger value="list">List</TabsTrigger>
+								<TabsTrigger value="grades">Grades</TabsTrigger>
+								<TabsTrigger value="settings">Settings</TabsTrigger>
+							</TabsList>
+							<ShareButton className="shadow-sm" />
+						</header>
 						<TabsContent value="board" className="w-full h-full">
 							<BoardScreen />
 						</TabsContent>
