@@ -190,7 +190,7 @@ const gcd = (a: number, b: number): number => {
 
 /**
  * For one group: pick grades for missing courses (1..4) such that
- * - group average stays < bound
+ * - group average stays <= bound (ties round down, so 1.5 still rounds to 1)
  * - grades are as "bad" as possible (push avg near bound)
  * - but "realistic": prefers 2/3 over 1/4 among equally-bad options
  */
@@ -206,7 +206,7 @@ function solveMissingGrades(opts: {
 
 	const EPS = 1e-6;
 
-	const cap = (bound - EPS) * totalECTS - fixedSum; // max allowed sumMissing
+	const cap = bound * totalECTS - fixedSum; // max allowed sumMissing; the boundary itself is valid
 	const baseline = missing.reduce((s, c) => s + 1 * c.ects, 0); // all missing = 1
 
 	if (cap < baseline) {
@@ -219,7 +219,7 @@ function solveMissingGrades(opts: {
 	for (const c of missing) unit = gcd(unit, c.ects);
 
 	const w = missing.map((c) => Math.round(c.ects / unit));
-	const budget = Math.floor((cap - baseline) / unit); // "extra points" budget above all-1s
+	const budget = Math.floor((cap - baseline + EPS) / unit); // "extra points" budget above all-1s
 
 	// "Realism" tie-breaker: avoid 1/4, neutral to 2, slight preference for 3.
 	const realism = (grade: number) => {
@@ -333,14 +333,14 @@ export const setLowerBoundSimulationGradesAtom = atom(null, (get, set) => {
 			missing,
 			minAvg,
 			maxAvg,
-			forcedOne: !isNaN(maxAvg) && maxAvg < 1.5,
-			forcedNotOne: !isNaN(minAvg) && minAvg >= 1.5,
+			forcedOne: !isNaN(maxAvg) && roundGrade(maxAvg) === 1,
+			forcedNotOne: !isNaN(minAvg) && roundGrade(minAvg) > 1,
 		};
 	});
 
 	// If not reachable given fixed constraints, best-effort: fill remaining with 1s (leave existing sim untouched)
-	const violatesAllA = computed.some((g) => !isNaN(g.minAvg) && g.minAvg >= 1.5);
-	const violatesDist = computed.some((g) => !isNaN(g.minAvg) && g.minAvg >= 2.5);
+	const violatesAllA = computed.some((g) => !isNaN(g.minAvg) && roundGrade(g.minAvg) > 1);
+	const violatesDist = computed.some((g) => !isNaN(g.minAvg) && roundGrade(g.minAvg) >= 3);
 
 	if ((goal === "allA" && violatesAllA) || (goal === "passedWithDistinction" && violatesDist)) {
 		const filled = computed.flatMap((g) => g.missing.map((m) => ({ name: m.key, grade: 1 })));

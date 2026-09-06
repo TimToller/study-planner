@@ -75,8 +75,10 @@ export default function CourseTable() {
 					bVal = bVal === "accredited" ? -1 : bVal;
 					return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
 				}
-				const aVal = a[sortField] ?? "";
-				const bVal = b[sortField] ?? "";
+				const aVal = a[sortField];
+				const bVal = b[sortField];
+				if (aVal === undefined || aVal === null) return bVal === undefined || bVal === null ? 0 : 1;
+				if (bVal === undefined || bVal === null) return -1;
 				if (typeof aVal === "number" && typeof bVal === "number") {
 					return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
 				}
@@ -233,8 +235,8 @@ function TableGuts({ filteredCourses }: { filteredCourses: Course[] }) {
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{filteredCourses.map((course, idx) => (
-					<MemoTableRow key={idx} {...course} />
+				{filteredCourses.map((course) => (
+					<MemoTableRow key={course.id} {...course} />
 				))}
 			</TableBody>
 		</Table>
@@ -247,12 +249,11 @@ function TableRowElement({
 	ects,
 	group,
 	name,
-	recommendedSemester,
 	type,
 	available,
 	grade,
 	plannedSemester,
-}: Pick<Course, "group" | "type" | "name" | "ects" | "available" | "recommendedSemester" | "plannedSemester" | "grade">) {
+}: Pick<Course, "group" | "type" | "name" | "ects" | "available" | "plannedSemester" | "grade">) {
 	const [, updateGrade] = useAtom(setGradesAtom);
 	const [, updatePlanning] = useAtom(setPlanningAtom);
 
