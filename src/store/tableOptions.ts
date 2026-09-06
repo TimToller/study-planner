@@ -6,3 +6,4 @@ export const sortFieldAtom = atom<keyof Course<string> | "status" | null>(null);
 export const sortOrderAtom = atom<"asc" | "desc">("asc");
 export const selectedTypesAtom = atom<string[]>([]);
 export const selectedGroupsAtom = atom<string[]>([]);
+export const selectedGradesAtom = atom<Array<number | undefined>>([]);
