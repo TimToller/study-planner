@@ -60,7 +60,7 @@ export const getGroupColor = (group: string) => {
   }
 };
 
-export const downloadJSON = (data: any, filename = "data.json") => {
+export const downloadJSON = (data: object, filename = "data.json") => {
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);

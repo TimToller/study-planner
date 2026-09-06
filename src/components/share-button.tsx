@@ -27,7 +27,6 @@ export default function ShareButton({ className, size = "default", variant = "de
   const exportData = useAtomValue(exportAtom);
   const courses = useAtomValue(personalCoursesAtom);
   const startingSemester = useAtomValue(startingSemesterAtom);
-  const appUrl = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
   const [open, setOpen] = useState(false);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
