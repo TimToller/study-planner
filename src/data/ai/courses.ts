@@ -12,11 +12,11 @@ export const aiCourses = defineCourseSubjects("AI", {
   handsOnAiII: "Hands-on AI II",
   technologyAndSociety: "Technology and Society",
   programmingInPythonII: "Programming in Python II",
-  algorithmsAndDataStructuresI: "Algorithms and Data Structures I",
+  algorithmsAndDataStructuresI: "Algorithms and Data Structures 1",
   statisticsForAi: "Statistics for AI",
   mathematicsForAiII: "Mathematics for AI II",
   artificialIntelligence: "Artificial Intelligence",
-  algorithmsAndDataStructuresII: "Algorithms and Data Structures II",
+  algorithmsAndDataStructuresII: "Algorithms and Data Structures 2",
   machineLearningBasicTechniques: "Machine Learning: Basic Techniques",
   visualization: "Visualization",
   machineLearningSupervisedTechniques: "Machine Learning: Supervised Techniques",
@@ -82,8 +82,18 @@ export const courseGroups = defineCourseGroups([
         recommendedSemester: 1,
         steop: "core",
       },
-      { type: "PR", subject: aiCourses.practicalWorkInAi, ects: 7.5, recommendedSemester: 5 },
-      { type: "SE", subject: aiCourses.seminarInAi, ects: 3, recommendedSemester: 4 },
+      {
+        type: "PR",
+        subject: aiCourses.practicalWorkInAi,
+        ects: 7.5,
+        recommendedSemester: 5,
+      },
+      {
+        type: "SE",
+        subject: aiCourses.seminarInAi,
+        ects: 3,
+        recommendedSemester: 4,
+      },
       {
         type: "UE",
         subject: aiCourses.artificialIntelligence,
@@ -130,7 +140,12 @@ export const courseGroups = defineCourseGroups([
         recommendedSemester: 1,
         steop: "additional",
       },
-      { type: "KV", subject: aiCourses.genderStudies, ects: 3, recommendedSemester: 6 },
+      {
+        type: "KV",
+        subject: aiCourses.genderStudies,
+        ects: 3,
+        recommendedSemester: 6,
+      },
     ],
   },
   {
@@ -171,6 +186,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "UE",
         subject: aiCourses.algorithmsAndDataStructuresI,
+        legacyNames: ["UE Algorithms and Data Structures I"],
         ects: 1.5,
         available: "SS",
         recommendedSemester: 2,
@@ -179,6 +195,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "VL",
         subject: aiCourses.algorithmsAndDataStructuresI,
+        legacyNames: ["VL Algorithms and Data Structures I"],
         ects: 3,
         available: "SS",
         recommendedSemester: 2,
@@ -187,6 +204,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "UE",
         subject: aiCourses.algorithmsAndDataStructuresII,
+        legacyNames: ["UE Algorithms and Data Structures II"],
         ects: 1.5,
         available: "WS",
         recommendedSemester: 3,
@@ -195,6 +213,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "VL",
         subject: aiCourses.algorithmsAndDataStructuresII,
+        legacyNames: ["VL Algorithms and Data Structures II"],
         ects: 3,
         available: "WS",
         recommendedSemester: 3,
@@ -493,7 +512,14 @@ export const courseGroups = defineCourseGroups([
   },
   {
     name: "Bachelor Thesis",
-    courses: [{ type: "SE", subject: aiCourses.bachelorThesis, ects: 9, recommendedSemester: 6 }],
+    courses: [
+      {
+        type: "SE",
+        subject: aiCourses.bachelorThesis,
+        ects: 9,
+        recommendedSemester: 6,
+      },
+    ],
   },
 ]);
 

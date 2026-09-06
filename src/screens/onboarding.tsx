@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { rawCourses as aiRawCourses } from "@/data/ai/courses";
 import { rawCourses as csRawCourses } from "@/data/cs/courses";
+import { customCoursesAtom } from "@/store/customCourses";
 import { gradesAtom } from "@/store/grades";
 import { planningAtom } from "@/store/planning";
 import { onboardingAtom, Program, programAtom, startingSemesterAtom } from "@/store/settings";
@@ -26,6 +27,7 @@ export default function OnboardingScreen() {
   const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
   const [planning, setPlanning] = useAtom(planningAtom);
   const [, setGrading] = useAtom(gradesAtom);
+  const [, setCustomCourses] = useAtom(customCoursesAtom);
 
   // React Hook Form setup
   const form = useForm<OnboardingForm>({
@@ -60,8 +62,11 @@ export default function OnboardingScreen() {
       const semesterOffset = semester === "SS" ? 1 : 0;
       const recommendedPlan = (program === "AI" ? aiRawCourses : csRawCourses)
         .filter(
-          (course): course is (typeof aiRawCourses)[number] & { recommendedSemester: number } =>
-            course.recommendedSemester !== null,
+          (
+            course,
+          ): course is (typeof aiRawCourses)[number] & {
+            recommendedSemester: number;
+          } => course.recommendedSemester !== null,
         )
         .map((course) => ({
           name: course.name,
@@ -178,19 +183,31 @@ export default function OnboardingScreen() {
             <KusssImportDialog
               rawCourses={importRawCourses}
               startingSemester={importStartingSemester}
-              triggerLabel="Import from KUSSS"
-              onImport={({ grades, planning }) => {
-                if (!grades.length && !planning.length) {
+              triggerLabel="Import Grades"
+              autoDetectStartingSemester
+              onImport={({ grades, planning, customCourses, firstGradedSemester }) => {
+                if (!grades.length && !planning.length && !customCourses.length) {
                   toast.error("No matching courses found for selected program.");
                   return;
                 }
+
+                setCustomCourses((current) => {
+                  const next = new Map(current.map((course) => [`${course.type} ${course.name}`, course]));
+                  for (const course of customCourses) {
+                    next.set(`${course.type} ${course.name}`, course);
+                  }
+                  return Array.from(next.values());
+                });
 
                 setGrading((current) => {
                   const next = new Map(current.map((entry) => [entry.name, entry.grade]));
                   for (const grade of grades) {
                     next.set(grade.name, grade.grade);
                   }
-                  return Array.from(next.entries()).map(([name, grade]) => ({ name, grade }));
+                  return Array.from(next.entries()).map(([name, grade]) => ({
+                    name,
+                    grade,
+                  }));
                 });
 
                 setPlanning((current) => {
@@ -204,7 +221,20 @@ export default function OnboardingScreen() {
                   }));
                 });
 
-                toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
+                const importedProgram = selectedProgram ?? "AI";
+                const importedStartingSemester = firstGradedSemester ?? importStartingSemester;
+
+                form.reset({
+                  program: importedProgram,
+                  year: importedStartingSemester.year,
+                  semester: importedStartingSemester.type,
+                });
+
+                setProgram(importedProgram);
+                setStartingSemester(importedStartingSemester);
+                setOnboardingCompleted(true);
+
+                toast.success(`Imported ${grades.length} grades and ${planning.length} semesters.`);
               }}
             />
           </div>

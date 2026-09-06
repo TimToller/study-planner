@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn, downloadJSON } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
+import { customCoursesAtom } from "@/store/customCourses";
 import { planningAtom } from "@/store/planning";
 import { exportAtom, programAtom, rawCoursesAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
@@ -27,6 +28,7 @@ export default function SettingsScreen() {
 
   const [, setPlanning] = useAtom(planningAtom);
   const [, setGrading] = useAtom(gradesAtom);
+  const [, setCustomCourses] = useAtom(customCoursesAtom);
   const [program] = useAtom(programAtom);
   const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
@@ -56,7 +58,12 @@ export default function SettingsScreen() {
   };
 
   const resetToRecommended = () => {
-    setPlanning(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })));
+    setPlanning(
+      rawCourses.map((c) => ({
+        name: c.name,
+        plannedSemester: c.recommendedSemester!,
+      })),
+    );
     setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
     toast.success("Successfully reset to recommended study plan");
   };
@@ -83,7 +90,12 @@ export default function SettingsScreen() {
                   max="2099"
                   step={"1"}
                   value={startingSemester.year}
-                  onChange={(e) => setStartingSemester({ ...startingSemester, year: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setStartingSemester({
+                      ...startingSemester,
+                      year: parseInt(e.target.value),
+                    })
+                  }
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
@@ -92,7 +104,12 @@ export default function SettingsScreen() {
                   type="single"
                   id={"semester"}
                   value={startingSemester.type}
-                  onValueChange={(value) => setStartingSemester({ ...startingSemester, type: value as SemesterType })}
+                  onValueChange={(value) =>
+                    setStartingSemester({
+                      ...startingSemester,
+                      type: value as SemesterType,
+                    })
+                  }
                 >
                   <ToggleGroupItem value="WS" aria-label="Toggle WS">
                     <h2>WS</h2>
@@ -117,18 +134,29 @@ export default function SettingsScreen() {
           <KusssImportDialog
             rawCourses={rawCourses}
             startingSemester={startingSemester}
-            onImport={({ grades, planning }) => {
-              if (!grades.length && !planning.length) {
+            onImport={({ grades, planning, customCourses }) => {
+              if (!grades.length && !planning.length && !customCourses.length) {
                 toast.error("No matching courses found for this program.");
                 return;
               }
+
+              setCustomCourses((current) => {
+                const next = new Map(current.map((course) => [`${course.type} ${course.name}`, course]));
+                for (const course of customCourses) {
+                  next.set(`${course.type} ${course.name}`, course);
+                }
+                return Array.from(next.values());
+              });
 
               setGrading((current) => {
                 const next = new Map(current.map((entry) => [entry.name, entry.grade]));
                 for (const grade of grades) {
                   next.set(grade.name, grade.grade);
                 }
-                return Array.from(next.entries()).map(([name, grade]) => ({ name, grade }));
+                return Array.from(next.entries()).map(([name, grade]) => ({
+                  name,
+                  grade,
+                }));
               });
 
               setPlanning((current) => {
@@ -142,7 +170,7 @@ export default function SettingsScreen() {
                 }));
               });
 
-              toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
+              toast.success(`Imported ${grades.length} grades and ${planning.length} semesters.`);
             }}
           />
           <Button onClick={exportFile} variant={"outline"}>

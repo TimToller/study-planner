@@ -1,30 +1,81 @@
-import { Course, CourseGrading, CoursePlan, Semester } from "@/types/courses";
+import { Course, CourseGrading, CoursePlan, CourseType, CustomCourse, Semester } from "@/types/courses";
 
 const GRADE_MAP: Record<string, number> = {
-  "sehr gut": 1,
-  gut: 2,
-  befriedigend: 3,
-  genügend: 4,
-  "nicht genügend": 5,
+  excellent: 1,
+  good: 2,
+  satisfactory: 3,
+  sufficient: 4,
+  insufficient: 5,
 };
 
-const COURSE_LINE_REGEX =
-  /^(\d{2}\.\d{2}\.\d{4})\s+(.+?)\s+(sehr gut|gut|befriedigend|genügend|nicht genügend)\s+([A-Z0-9]+)\s+([A-Z]{2,3})\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)\s+\d+\s*$/i;
+/**
+ * KUSSS uses English API course-type codes, while our course data
+ * uses the usual JKU/German abbreviations.
+ */
+const COURSE_TYPE_MAP: Record<string, string[]> = {
+  LE: ["VL", "VO"],
+  TU: ["UE"],
+  TO: ["KO"],
+  CC: ["KV"],
+  SE: ["SE"],
+  PC: ["PR"],
+};
+
+const toLocalCourseType = (apiType: string): CourseType => {
+  const localType = COURSE_TYPE_MAP[apiType.toUpperCase()]?.[0];
+
+  return (localType as CourseType | undefined) ?? "KV";
+};
+
+type KusssCourse = {
+  courseClass?: {
+    courseType?: string | null;
+    courseTypeLongForm?: string | null;
+    ects?: number | null;
+    hoursPerWeek?: number | null;
+  } | null;
+
+  courseClassVariant?: {
+    shortForm?: string | null;
+    title?: string | null;
+  } | null;
+
+  courseNr?: string | null;
+  subtitle?: string | null;
+  termId?: string | null;
+};
+
+type KusssCertificate = {
+  type?: string | null;
+  certId?: number | null;
+  examDate?: string | null;
+  gradeDescription?: string | null;
+  positive?: boolean | null;
+  ects?: number | null;
+  hoursPerWeek?: number | null;
+  course?: KusssCourse | null;
+};
+
+export type KusssGradeResponse = {
+  certificates: Record<string, KusssCertificate[]>;
+};
 
 type IndexedCourse = {
-  name: string;
   normalizedName: string;
   normalizedTitleOnly: string;
   course: Course<string>;
 };
 
 export type ParsedKusssRow = {
+  id: number;
   date: string;
   title: string;
   cleanTitle: string;
   gradeLabel: string;
   grade?: number;
   type: string;
+  localType: CourseType;
+  ects: number;
   semesterCode?: string;
   matchedCourseName?: string;
   plannedSemester?: number | "accredited";
@@ -34,195 +85,279 @@ export type ParsedKusssResult = {
   rows: ParsedKusssRow[];
   grades: CourseGrading[];
   planning: CoursePlan[];
+  customCourses: CustomCourse[];
+  firstGradedSemester?: Semester;
 };
 
-export const looksLikeKusssGradeText = (text: string) => {
-  const normalized = text.toLowerCase();
-  return (
-    normalized.includes("kusss") &&
-    (normalized.includes("course assessments") ||
-      normalized.includes("recognized assessments") ||
-      normalized.includes("date\ttitle\tgrade"))
-  );
-};
+export const getDefaultUnmatchedVariant = (title: string): CustomCourse["variant"] =>
+  /\bspecial topics\b/i.test(title) ? "Area of Specialization" : "Free Elective";
 
-const normalizeTitle = (value: string) => {
-  const translated = value
+const normalizeTitle = (value: string) =>
+  value
     .toLowerCase()
-    .replace(/algorithmen und datenstrukturen\s+1/g, "algorithms and data structures 1")
-    .replace(/algorithmen und datenstrukturen\s+2/g, "algorithms and data structures 2")
-    .replace(/&/g, " and ")
-    .replace(/\biii\b/g, "3")
-    .replace(/\bii\b/g, "2")
-    .replace(/\bi\b/g, "1");
-
-  return translated
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9 ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
-
-const extractSemesterCode = (title: string): string | undefined => {
-  const match = title.match(/\(\d+\s*,\s*(\d{4}[WS])\)/i);
-  return match?.[1]?.toUpperCase();
-};
-
-const cleanTitle = (title: string) =>
-  title
-    .replace(/\(\d+\s*,\s*\d{4}[WS]\)/gi, "")
-    .replace(/\(recognized\)/gi, "")
+    .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-const isRecognizedHeading = (line: string) => {
-  const normalized = line.trim().toLowerCase();
-  return (
-    normalized === "recognized course certificates (ilas)" ||
-    normalized === "recognized assessments" ||
-    normalized === "recognized exams"
-  );
-};
-
-const semesterSerial = (semester: Semester) => {
-  if (semester.type === "WS") return semester.year * 2;
-  return semester.year * 2 - 1;
-};
+const semesterSerial = (semester: Semester) => (semester.type === "WS" ? semester.year * 2 : semester.year * 2 - 1);
 
 const parseSemesterCode = (semesterCode: string): Semester | undefined => {
   const match = semesterCode.match(/^(\d{4})([WS])$/i);
+
   if (!match) return undefined;
-  const year = Number(match[1]);
-  const type = match[2].toUpperCase() === "W" ? "WS" : "SS";
-  return { year, type };
+
+  return {
+    year: Number(match[1]),
+    type: match[2].toUpperCase() === "W" ? "WS" : "SS",
+  };
 };
 
-const toPlannedSemester = (startSemester: Semester, semesterCode?: string) => {
+const toPlannedSemester = (startingSemester: Semester, semesterCode?: string): number | "accredited" | undefined => {
   if (!semesterCode) return undefined;
-  const parsed = parseSemesterCode(semesterCode);
-  if (!parsed) return undefined;
 
-  const index = semesterSerial(parsed) - semesterSerial(startSemester) + 1;
-  if (index < 1) return undefined;
-  return index;
+  const semester = parseSemesterCode(semesterCode);
+
+  if (!semester) return undefined;
+
+  const index = semesterSerial(semester) - semesterSerial(startingSemester) + 1;
+
+  return index >= 1 ? index : "accredited";
 };
 
-const buildCourseIndex = (rawCourses: Course<string>[]) => {
+const buildCourseIndex = (rawCourses: Course<string>[]): IndexedCourse[] => {
   const indexed: IndexedCourse[] = [];
-  const startsWithTypePrefix = (value: string) => /^(UE|VL|KV|SE|PR|VO|KO)\s+/i.test(value);
-  for (const course of rawCourses) {
+
+  const addCourse = (course: Course<string>, name: string) => {
     indexed.push({
-      name: course.name,
-      normalizedName: normalizeTitle(course.name),
-      normalizedTitleOnly: normalizeTitle(course.name.replace(/^[A-Z]{2,3}\s+/, "")),
+      normalizedName: normalizeTitle(name),
+      normalizedTitleOnly: normalizeTitle(name.replace(/^[A-Z]{2,3}\s+/, "")),
       course,
     });
+  };
+
+  for (const course of rawCourses) {
+    addCourse(course, course.name);
+
     for (const legacyName of course.legacyNames ?? []) {
-      const fullLegacyName = startsWithTypePrefix(legacyName) ? legacyName : `${course.type} ${legacyName}`;
-      indexed.push({
-        name: fullLegacyName,
-        normalizedName: normalizeTitle(fullLegacyName),
-        normalizedTitleOnly: normalizeTitle(fullLegacyName.replace(/^[A-Z]{2,3}\s+/, "")),
-        course,
-      });
+      const hasTypePrefix = /^[A-Z]{2,3}\s+/i.test(legacyName);
+
+      addCourse(course, hasTypePrefix ? legacyName : `${course.type} ${legacyName}`);
     }
   }
+
   return indexed;
 };
 
-const resolveCourse = (indexedCourses: IndexedCourse[], type: string, title: string) => {
-  const normalizedType = type === "VO" ? "VL" : type;
-  const normalized = normalizeTitle(`${normalizedType} ${title}`);
-  const exact = indexedCourses.find((c) => c.normalizedName === normalized);
-  if (exact) return exact.course;
+const resolveCourse = (indexedCourses: IndexedCourse[], apiType: string, title: string) => {
+  const normalizedApiType = apiType.toUpperCase();
 
-  const withoutSuffix = title.split(" - ")[0]?.trim();
-  if (withoutSuffix) {
-    const normalizedWithoutSuffix = normalizeTitle(`${normalizedType} ${withoutSuffix}`);
-    const fallback = indexedCourses.find((c) => c.normalizedName === normalizedWithoutSuffix);
-    if (fallback) return fallback.course;
+  const localTypes = COURSE_TYPE_MAP[normalizedApiType] ?? [normalizedApiType];
+
+  const baseTitle = title.split(" - ")[0]?.trim() || title;
+
+  const titleCandidates = [...new Set([title, baseTitle])];
+
+  /**
+   * First try title + course type.
+   */
+  for (const candidateTitle of titleCandidates) {
+    for (const type of localTypes) {
+      const normalized = normalizeTitle(`${type} ${candidateTitle}`);
+
+      const match = indexedCourses.find((candidate) => candidate.normalizedName === normalized);
+
+      if (match) {
+        return match.course;
+      }
+    }
   }
 
-  const normalizedTitleOnly = normalizeTitle(title);
-  const titleMatches = indexedCourses.filter((c) => c.normalizedTitleOnly === normalizedTitleOnly);
-  if (titleMatches.length > 0) {
-    const preferred = titleMatches.find((candidate) => candidate.course.type === "VL");
-    return (preferred ?? titleMatches[0]).course;
+  /**
+   * Fall back to title-only matching.
+   *
+   * This also handles KUSSS types for which we do not have
+   * an explicit local mapping.
+   */
+  for (const candidateTitle of titleCandidates) {
+    const normalized = normalizeTitle(candidateTitle);
+
+    const matches = indexedCourses.filter((candidate) => candidate.normalizedTitleOnly === normalized);
+
+    if (matches.length === 0) {
+      continue;
+    }
+
+    /**
+     * If several courses share the same title, prefer one whose
+     * type corresponds to the KUSSS type.
+     */
+    const typeMatch = matches.find((candidate) => localTypes.includes(candidate.course.type.toUpperCase()));
+
+    if (typeMatch) {
+      return typeMatch.course;
+    }
+
+    if (matches.length === 1) {
+      return matches[0].course;
+    }
+
+    return undefined;
   }
 
   return undefined;
 };
 
-export const parseKusssGradeText = (
-  text: string,
+export const parseKusssGrades = (
+  data: KusssGradeResponse,
   rawCourses: Course<string>[],
   startingSemester: Semester,
+  unmatchedVariants: Record<number, CustomCourse["variant"]> = {},
 ): ParsedKusssResult => {
   const rows: ParsedKusssRow[] = [];
-  const indexedCourses = buildCourseIndex(rawCourses);
 
   const gradeMap = new Map<string, number>();
+
   const planningMap = new Map<string, number | "accredited">();
-  let inRecognizedSection = false;
 
-  for (const rawLine of text.split("\n")) {
-    const line = rawLine.trim();
-    if (!line) continue;
+  const customCoursesMap = new Map<string, CustomCourse>();
+  let firstGradedSemester: Semester | undefined;
 
-    if (isRecognizedHeading(line)) {
-      inRecognizedSection = true;
+  const indexedCourses = buildCourseIndex(rawCourses);
+
+  /**
+   * Flatten all semester groups.
+   *
+   * Newest first means that if the same course occurs multiple
+   * times, the newest grade is imported.
+   */
+  const certificates = Object.entries(data.certificates)
+    .flatMap(([bucketSemester, certificates]) =>
+      certificates.map((certificate) => ({
+        bucketSemester,
+        certificate,
+      })),
+    )
+    .sort((a, b) => (b.certificate.examDate ?? "").localeCompare(a.certificate.examDate ?? ""));
+
+  for (const { bucketSemester, certificate } of certificates) {
+    if (certificate.type !== "COURSE_CERTIFICATE" && certificate.type !== "RECOGNIZED_COURSE_CERTIFICATE") {
       continue;
     }
 
-    if (/^(course assessments|interim course assessments|assessments of the last|exams)\b/i.test(line)) {
-      inRecognizedSection = false;
+    const course = certificate.course;
+
+    const baseTitle = course?.courseClassVariant?.title?.trim();
+
+    if (!baseTitle) {
+      continue;
     }
 
-    const match = line.match(COURSE_LINE_REGEX);
-    if (!match) continue;
+    const subtitle = course?.subtitle?.trim();
 
-    const [, date, title, gradeLabelRaw, , type] = match;
-    const gradeLabel = gradeLabelRaw.toLowerCase();
-    const grade = GRADE_MAP[gradeLabel];
-    const semesterCode = extractSemesterCode(title);
-    const normalizedTitle = cleanTitle(title);
-    const matchedCourse = resolveCourse(indexedCourses, type, normalizedTitle);
-    const recognizedFromTitle = /\(recognized\)/i.test(title);
-    const isRecognized = inRecognizedSection || recognizedFromTitle;
+    const title = subtitle ? `${baseTitle} - ${subtitle}` : baseTitle;
+
+    const apiType = course?.courseClass?.courseType?.trim() ?? "";
+
+    const gradeLabel = certificate.gradeDescription?.trim() ?? "";
+
+    const grade = GRADE_MAP[gradeLabel.toLowerCase()];
+
+    const matchedCourse = resolveCourse(indexedCourses, apiType, title);
+
+    const isRecognized = certificate.type === "RECOGNIZED_COURSE_CERTIFICATE";
+
+    /**
+     * course.termId describes the actual semester the course
+     * belongs to.
+     *
+     * The outer KUSSS certificate bucket can occasionally differ,
+     * so it is only used as a fallback.
+     */
+    const semesterCode = course?.termId?.trim() || bucketSemester || undefined;
+    const courseSemester = semesterCode ? parseSemesterCode(semesterCode) : undefined;
+
+    if (
+      grade !== undefined &&
+      courseSemester &&
+      (!firstGradedSemester || semesterSerial(courseSemester) < semesterSerial(firstGradedSemester))
+    ) {
+      firstGradedSemester = courseSemester;
+    }
+
     const plannedSemester = isRecognized ? "accredited" : toPlannedSemester(startingSemester, semesterCode);
 
     rows.push({
-      date,
+      id: rows.length,
+      date: certificate.examDate ?? "",
       title,
-      cleanTitle: normalizedTitle,
+      cleanTitle: title,
       gradeLabel,
       grade,
-      type,
+      type: apiType,
+      localType: toLocalCourseType(apiType),
+      ects: certificate.ects ?? course?.courseClass?.ects ?? 0,
       semesterCode,
       matchedCourseName: matchedCourse?.name,
       plannedSemester,
     });
 
+    if (!matchedCourse) {
+      const variant = unmatchedVariants[rows.length - 1] ?? getDefaultUnmatchedVariant(title);
+      const customCourse: CustomCourse = {
+        name: title,
+        variant,
+        ects: certificate.ects ?? course?.courseClass?.ects ?? 0,
+        type: toLocalCourseType(apiType),
+      };
+      const customCourseKey = `${customCourse.type} ${customCourse.name}`;
+
+      customCoursesMap.set(customCourseKey, customCourse);
+
+      const importedCourseName = customCourseKey;
+
+      if (grade !== undefined && !gradeMap.has(importedCourseName)) {
+        gradeMap.set(importedCourseName, grade);
+      }
+
+      if (plannedSemester !== undefined) {
+        const existing = planningMap.get(importedCourseName);
+
+        if (existing === undefined || plannedSemester === "accredited") {
+          planningMap.set(importedCourseName, plannedSemester);
+        }
+      }
+    }
+
     if (matchedCourse && grade !== undefined && !gradeMap.has(matchedCourse.name)) {
       gradeMap.set(matchedCourse.name, grade);
     }
+
     if (matchedCourse && plannedSemester !== undefined) {
       const existing = planningMap.get(matchedCourse.name);
+
       if (existing === undefined || plannedSemester === "accredited") {
         planningMap.set(matchedCourse.name, plannedSemester);
       }
     }
   }
 
-  const grades: CourseGrading[] = Array.from(gradeMap.entries()).map(([name, grade]) => ({
+  const grades: CourseGrading[] = Array.from(gradeMap, ([name, grade]) => ({
     name,
     grade,
   }));
-  const planning: CoursePlan[] = Array.from(planningMap.entries()).map(([name, plannedSemester]) => ({
+
+  const planning: CoursePlan[] = Array.from(planningMap, ([name, plannedSemester]) => ({
     name,
     plannedSemester,
   }));
 
-  return { rows, grades, planning };
+  return {
+    rows,
+    grades,
+    planning,
+    customCourses: Array.from(customCoursesMap.values()),
+    firstGradedSemester,
+  };
 };
