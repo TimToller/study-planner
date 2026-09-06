@@ -7,71 +7,71 @@ import { rawCoursesAtom } from "./settings";
 export const isScholarshipApplicationPeriod = (date = new Date()) => date.getMonth() === 9;
 
 export const SCHOLARSHIP_CHANCES = {
-	notEligible: "Not eligible",
-	low: "Low",
-	moderate: "Moderate",
-	good: "Good",
-	veryGood: "Very Good",
+  notEligible: "Not eligible",
+  low: "Low",
+  moderate: "Moderate",
+  good: "Good",
+  veryGood: "Very Good",
 } as const;
 
 export type ScholarshipChance = (typeof SCHOLARSHIP_CHANCES)[keyof typeof SCHOLARSHIP_CHANCES];
 
 export interface ScholarshipEstimate {
-	average: number | undefined;
-	ects: number;
-	latestSemester?: number;
-	points?: number;
-	chances?: ScholarshipChance;
+  average: number | undefined;
+  ects: number;
+  latestSemester?: number;
+  points?: number;
+  chances?: ScholarshipChance;
 }
 
 //TODO This could be improved
 const getChances = (average: number, points: number, ects: number): ScholarshipChance => {
-	if (average > 2 || ects < 40) return SCHOLARSHIP_CHANCES.notEligible;
-	if (points < 230) return SCHOLARSHIP_CHANCES.low;
-	if (points < 250) return SCHOLARSHIP_CHANCES.moderate;
-	if (points < 330) return SCHOLARSHIP_CHANCES.good;
-	return SCHOLARSHIP_CHANCES.veryGood;
+  if (average > 2 || ects < 40) return SCHOLARSHIP_CHANCES.notEligible;
+  if (points < 230) return SCHOLARSHIP_CHANCES.low;
+  if (points < 250) return SCHOLARSHIP_CHANCES.moderate;
+  if (points < 330) return SCHOLARSHIP_CHANCES.good;
+  return SCHOLARSHIP_CHANCES.veryGood;
 };
 
 export const recentCourseAverageAtom = atom<ScholarshipEstimate>((get) => {
-	const grades = get(gradesAtom).filter((g) => g.grade !== undefined);
-	if (grades.length === 0) return { average: undefined, ects: 0 };
+  const grades = get(gradesAtom).filter((g) => g.grade !== undefined);
+  if (grades.length === 0) return { average: undefined, ects: 0 };
 
-	// Map course → semester + ects
-	const planning = get(planningAtom);
-	const ectsMap = new Map<string, number>();
-	get(rawCoursesAtom).forEach((c) => ectsMap.set(c.name, c.ects));
+  // Map course → semester + ects
+  const planning = get(planningAtom);
+  const ectsMap = new Map<string, number>();
+  get(rawCoursesAtom).forEach((c) => ectsMap.set(c.name, c.ects));
 
-	const gradedWithSemester = grades
-		.map((g) => {
-			const plan = planning.find((p) => p.name === g.name);
-			return {
-				grade: g.grade!,
-				ects: ectsMap.get(g.name) ?? 0,
-				semester: typeof plan?.plannedSemester === "number" ? plan.plannedSemester : undefined,
-			};
-		})
-		.filter((c) => c.semester !== undefined); // drop “accredited” / undefined
+  const gradedWithSemester = grades
+    .map((g) => {
+      const plan = planning.find((p) => p.name === g.name);
+      return {
+        grade: g.grade!,
+        ects: ectsMap.get(g.name) ?? 0,
+        semester: typeof plan?.plannedSemester === "number" ? plan.plannedSemester : undefined,
+      };
+    })
+    .filter((c) => c.semester !== undefined); // drop “accredited” / undefined
 
-	if (gradedWithSemester.length === 0) return { average: undefined, ects: 0 };
+  if (gradedWithSemester.length === 0) return { average: undefined, ects: 0 };
 
-	const latestSemester = Math.max(...gradedWithSemester.map((c) => c.semester!));
+  const latestSemester = Math.max(...gradedWithSemester.map((c) => c.semester!));
 
-	const recent = gradedWithSemester.filter(
-		(c) => (c.semester as number) >= latestSemester - 1 //checks current and prev semester
-	);
+  const recent = gradedWithSemester.filter(
+    (c) => (c.semester as number) >= latestSemester - 1, //checks current and prev semester
+  );
 
-	const ects = recent.reduce((s, c) => s + c.ects, 0);
-	const average = weightedAverage(recent.map((c) => ({ number: c.grade, weight: c.ects })));
+  const ects = recent.reduce((s, c) => s + c.ects, 0);
+  const average = weightedAverage(recent.map((c) => ({ number: c.grade, weight: c.ects })));
 
-	//NOTES:
-	//device by 1.5 because "points" use SSt not ECTS
-	//1 -> 4x multipler, 2 -> 3x multiplier etc.
-	//in the propper formula, LVA Types are weighted differently (we have *2 multiplier at the end)
-	//here we just assume everything is a VL, VO,  VU, KV, UE even though KO, SE etc. would have different weights.
-	//This is just a rough estimate anyway.
-	const points = recent.reduce((s, c) => s + Math.floor(c.ects / 1.5) * (5 - c.grade), 0) * 2;
-	const chances = getChances(average, points, ects);
+  //NOTES:
+  //device by 1.5 because "points" use SSt not ECTS
+  //1 -> 4x multipler, 2 -> 3x multiplier etc.
+  //in the propper formula, LVA Types are weighted differently (we have *2 multiplier at the end)
+  //here we just assume everything is a VL, VO,  VU, KV, UE even though KO, SE etc. would have different weights.
+  //This is just a rough estimate anyway.
+  const points = recent.reduce((s, c) => s + Math.floor(c.ects / 1.5) * (5 - c.grade), 0) * 2;
+  const chances = getChances(average, points, ects);
 
-	return { average: isNaN(average) ? undefined : average, ects, latestSemester, points, chances };
+  return { average: isNaN(average) ? undefined : average, ects, latestSemester, points, chances };
 });

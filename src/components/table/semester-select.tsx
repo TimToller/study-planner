@@ -6,41 +6,39 @@ import React, { useCallback } from "react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 
 interface SemesterSelectProps {
-	semester?: number | "accredited";
-	onSemesterChange: (newSemester: CoursePlan["plannedSemester"]) => void;
+  semester?: number | "accredited";
+  onSemesterChange: (newSemester: CoursePlan["plannedSemester"]) => void;
 }
 
 const SemesterSelect = React.memo(function SemesterSelect({ semester, onSemesterChange }: SemesterSelectProps) {
-	const handleValueChange = useCallback(
-		(newSemester: string) => {
-			onSemesterChange(
-				newSemester === "none" ? undefined : newSemester === "accredited" ? "accredited" : parseInt(newSemester, 10),
-			);
-		},
-		[onSemesterChange],
-	);
+  const handleValueChange = useCallback(
+    (newSemester: string) => {
+      onSemesterChange(newSemester === "none" ? undefined : newSemester === "accredited" ? "accredited" : parseInt(newSemester, 10));
+    },
+    [onSemesterChange],
+  );
 
-	const [startingSemester] = useAtom(startingSemesterAtom);
+  const [startingSemester] = useAtom(startingSemesterAtom);
 
-	return (
-		<Select onValueChange={handleValueChange} value={semester?.toString() ?? ""}>
-			<SelectTrigger className="w-[120px] sm:w-[200px]">
-				<SelectValue placeholder="Select a semester" />
-			</SelectTrigger>
-			<SelectContent>
-				<SelectGroup>
-					<SelectLabel>Semester</SelectLabel>
-					{new Array(8).fill(0).map((_, i) => (
-						<SelectItem key={i} value={(i + 1).toString()}>
-							{formatSemester(i + 1, startingSemester)}
-						</SelectItem>
-					))}
-					<SelectItem value="accredited">Accredited</SelectItem>
-					<SelectItem value="none">None</SelectItem>
-				</SelectGroup>
-			</SelectContent>
-		</Select>
-	);
+  return (
+    <Select onValueChange={handleValueChange} value={semester?.toString() ?? ""}>
+      <SelectTrigger className="w-[120px] sm:w-[200px]">
+        <SelectValue placeholder="Select a semester" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Semester</SelectLabel>
+          {new Array(8).fill(0).map((_, i) => (
+            <SelectItem key={i} value={(i + 1).toString()}>
+              {formatSemester(i + 1, startingSemester)}
+            </SelectItem>
+          ))}
+          <SelectItem value="accredited">Accredited</SelectItem>
+          <SelectItem value="none">None</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
 });
 
 export default SemesterSelect;

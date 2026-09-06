@@ -18,192 +18,193 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingsScreen() {
-	const [rawCourses] = useAtom(rawCoursesAtom);
+  const [rawCourses] = useAtom(rawCoursesAtom);
 
-	const [exportData, importData] = useAtom(exportAtom);
+  const [exportData, importData] = useAtom(exportAtom);
 
-	const [wantsChangeProgram, setWantsChangeProgram] = useState(false);
-	const [hasBackuped, setHasBackuped] = useState(false);
+  const [wantsChangeProgram, setWantsChangeProgram] = useState(false);
+  const [hasBackuped, setHasBackuped] = useState(false);
 
-	const [, setPlanning] = useAtom(planningAtom);
-	const [, setGrading] = useAtom(gradesAtom);
-	const [program] = useAtom(programAtom);
-	const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
+  const [, setPlanning] = useAtom(planningAtom);
+  const [, setGrading] = useAtom(gradesAtom);
+  const [program] = useAtom(programAtom);
+  const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
-	const exportFile = () => {
-		downloadJSON(exportData, "StudyPlanner.json");
-		setHasBackuped(true);
-	};
+  const exportFile = () => {
+    downloadJSON(exportData, "StudyPlanner.json");
+    setHasBackuped(true);
+  };
 
-	const importFile = (file: File | null | undefined) => {
-		if (!file) return;
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			const data = e.target?.result as string;
-			importData(data);
-		};
-		reader.readAsText(file);
-	};
+  const importFile = (file: File | null | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = e.target?.result as string;
+      importData(data);
+    };
+    reader.readAsText(file);
+  };
 
-	const resetPlanning = () => {
-		setPlanning([]);
-		toast.success("Successfully reset course planning");
-	};
+  const resetPlanning = () => {
+    setPlanning([]);
+    toast.success("Successfully reset course planning");
+  };
 
-	const resetGrading = () => {
-		setGrading([]);
-		toast.success("Successfully reset grading");
-	};
+  const resetGrading = () => {
+    setGrading([]);
+    toast.success("Successfully reset grading");
+  };
 
-	const resetToRecommended = () => {
-		setPlanning(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })));
-		setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
-		toast.success("Successfully reset to recommended study plan");
-	};
+  const resetToRecommended = () => {
+    setPlanning(rawCourses.map((c) => ({ name: c.name, plannedSemester: c.recommendedSemester! })));
+    setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
+    toast.success("Successfully reset to recommended study plan");
+  };
 
-	return (
-		<section className="h-full grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 m-3 sm:m-4">
-			<Card className="">
-				<CardHeader>
-					<CardTitle>Starting Semester</CardTitle>
-					<CardDescription>
-						Specify when you started studying. This will correctly count your first, second etc. semester.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<form>
-						<div className="grid w-full items-center gap-4">
-							<div className="flex flex-col space-y-1.5">
-								<Label htmlFor="year">Year</Label>
-								<Input
-									id="year"
-									placeholder={new Date().getFullYear().toString()}
-									type="number"
-									min="1900"
-									max="2099"
-									step={"1"}
-									value={startingSemester.year}
-									onChange={(e) => setStartingSemester({ ...startingSemester, year: parseInt(e.target.value) })}
-								/>
-							</div>
-							<div className="flex flex-col space-y-1.5">
-								<Label htmlFor="semester">Semester</Label>
-								<ToggleGroup
-									type="single"
-									id={"semester"}
-									value={startingSemester.type}
-									onValueChange={(value) => setStartingSemester({ ...startingSemester, type: value as SemesterType })}>
-									<ToggleGroupItem value="WS" aria-label="Toggle WS">
-										<h2>WS</h2>
-									</ToggleGroupItem>
-									<ToggleGroupItem value="SS" aria-label="Toggle SS">
-										<h2>SS</h2>
-									</ToggleGroupItem>
-								</ToggleGroup>
-							</div>
-						</div>
-					</form>
-				</CardContent>
-			</Card>
-			<Card className="">
-				<CardHeader>
-					<CardTitle>Import/Export</CardTitle>
-					<CardDescription>Import, export and share your data.</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
-					<Label htmlFor="json-import">Import JSON File</Label>
-					<Input type="file" id="json-import" onChange={(e) => importFile(e.target.files?.item(0))} accept=".json" />
-					<KusssImportDialog
-						rawCourses={rawCourses}
-						startingSemester={startingSemester}
-						onImport={({ grades, planning }) => {
-							if (!grades.length && !planning.length) {
-								toast.error("No matching courses found for this program.");
-								return;
-							}
+  return (
+    <section className="h-full grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 m-3 sm:m-4">
+      <Card className="">
+        <CardHeader>
+          <CardTitle>Starting Semester</CardTitle>
+          <CardDescription>Specify when you started studying. This will correctly count your first, second etc. semester.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form>
+            <div className="grid w-full items-center gap-4">
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="year">Year</Label>
+                <Input
+                  id="year"
+                  placeholder={new Date().getFullYear().toString()}
+                  type="number"
+                  min="1900"
+                  max="2099"
+                  step={"1"}
+                  value={startingSemester.year}
+                  onChange={(e) => setStartingSemester({ ...startingSemester, year: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="semester">Semester</Label>
+                <ToggleGroup
+                  type="single"
+                  id={"semester"}
+                  value={startingSemester.type}
+                  onValueChange={(value) => setStartingSemester({ ...startingSemester, type: value as SemesterType })}
+                >
+                  <ToggleGroupItem value="WS" aria-label="Toggle WS">
+                    <h2>WS</h2>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="SS" aria-label="Toggle SS">
+                    <h2>SS</h2>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+      <Card className="">
+        <CardHeader>
+          <CardTitle>Import/Export</CardTitle>
+          <CardDescription>Import, export and share your data.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Label htmlFor="json-import">Import JSON File</Label>
+          <Input type="file" id="json-import" onChange={(e) => importFile(e.target.files?.item(0))} accept=".json" />
+          <KusssImportDialog
+            rawCourses={rawCourses}
+            startingSemester={startingSemester}
+            onImport={({ grades, planning }) => {
+              if (!grades.length && !planning.length) {
+                toast.error("No matching courses found for this program.");
+                return;
+              }
 
-							setGrading((current) => {
-								const next = new Map(current.map((entry) => [entry.name, entry.grade]));
-								for (const grade of grades) {
-									next.set(grade.name, grade.grade);
-								}
-								return Array.from(next.entries()).map(([name, grade]) => ({ name, grade }));
-							});
+              setGrading((current) => {
+                const next = new Map(current.map((entry) => [entry.name, entry.grade]));
+                for (const grade of grades) {
+                  next.set(grade.name, grade.grade);
+                }
+                return Array.from(next.entries()).map(([name, grade]) => ({ name, grade }));
+              });
 
-							setPlanning((current) => {
-								const next = new Map(current.map((entry) => [entry.name, entry.plannedSemester]));
-								for (const plan of planning) {
-									next.set(plan.name, plan.plannedSemester);
-								}
-								return Array.from(next.entries()).map(([name, plannedSemester]) => ({ name, plannedSemester }));
-							});
+              setPlanning((current) => {
+                const next = new Map(current.map((entry) => [entry.name, entry.plannedSemester]));
+                for (const plan of planning) {
+                  next.set(plan.name, plan.plannedSemester);
+                }
+                return Array.from(next.entries()).map(([name, plannedSemester]) => ({
+                  name,
+                  plannedSemester,
+                }));
+              });
 
-							toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
-						}}
-					/>
-					<Button onClick={exportFile} variant={"outline"}>
-						<FileUp /> Export
-					</Button>
-					<ShareButton variant="outline" className="w-full" />
-				</CardContent>
-			</Card>
-			<Card className="">
-				<CardHeader>
-					<CardTitle>Theming</CardTitle>
-				</CardHeader>
-				<CardContent className="gap-4 flex flex-row items-center">
-					<Label htmlFor="mode-toggle">Dark Mode</Label>
-					<ModeToggle />
-				</CardContent>
-			</Card>
-			<Card className={"relative"}>
-				<CardHeader className={cn(!wantsChangeProgram && "blur-sm")}>
-					<CardTitle>Change Program</CardTitle>
-				</CardHeader>
-				<CardContent className={cn("flex flex-col gap-4", !wantsChangeProgram && "blur-sm")}>
-					<Label htmlFor="program-toggle" className="sr-only">
-						Bachelor's Program
-					</Label>
-					<ProgramToggle />
-				</CardContent>
-				{!wantsChangeProgram && (
-					<div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
-						<OctagonAlert size={50} />
-						<h2 className="text-center font-bold m-2">
-							Changing your Bachelor's Program will reset your data! Back up (Export) your Data before abandoning your current
-							program!
-						</h2>
-						<Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
-							I have enough of {program}!
-						</Button>
-					</div>
-				)}
-			</Card>
-			<Card className={"relative"}>
-				<CardHeader className={cn(!hasBackuped && "blur-sm")}>
-					<CardTitle>Reset</CardTitle>
-				</CardHeader>
-				<CardContent className={cn("flex flex-col gap-4", !hasBackuped && "blur-sm")}>
-					<Button onClick={resetPlanning} variant={"destructive"}>
-						Reset course planning
-					</Button>
-					<Button onClick={resetGrading} variant={"destructive"}>
-						Reset grading
-					</Button>
-					<Button onClick={resetToRecommended} variant={"destructive"}>
-						Reset to recommended study plan
-					</Button>
-				</CardContent>
-				{!hasBackuped && (
-					<div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
-						<Lock size={50} />
-						<h2 className="text-center font-bold">Back up (Export) your Data before doing something dangerous!</h2>
-						<Button onClick={() => setHasBackuped(true)} variant={"destructive"}>
-							I like living on the Edge
-						</Button>
-					</div>
-				)}
-			</Card>
-		</section>
-	);
+              toast.success(`Imported ${grades.length} grades and ${planning.length} semesters from KUSSS text.`);
+            }}
+          />
+          <Button onClick={exportFile} variant={"outline"}>
+            <FileUp /> Export
+          </Button>
+          <ShareButton variant="outline" className="w-full" />
+        </CardContent>
+      </Card>
+      <Card className="">
+        <CardHeader>
+          <CardTitle>Theming</CardTitle>
+        </CardHeader>
+        <CardContent className="gap-4 flex flex-row items-center">
+          <Label htmlFor="mode-toggle">Dark Mode</Label>
+          <ModeToggle />
+        </CardContent>
+      </Card>
+      <Card className={"relative"}>
+        <CardHeader className={cn(!wantsChangeProgram && "blur-sm")}>
+          <CardTitle>Change Program</CardTitle>
+        </CardHeader>
+        <CardContent className={cn("flex flex-col gap-4", !wantsChangeProgram && "blur-sm")}>
+          <Label htmlFor="program-toggle" className="sr-only">
+            Bachelor's Program
+          </Label>
+          <ProgramToggle />
+        </CardContent>
+        {!wantsChangeProgram && (
+          <div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
+            <OctagonAlert size={50} />
+            <h2 className="text-center font-bold m-2">
+              Changing your Bachelor's Program will reset your data! Back up (Export) your Data before abandoning your current program!
+            </h2>
+            <Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
+              I have enough of {program}!
+            </Button>
+          </div>
+        )}
+      </Card>
+      <Card className={"relative"}>
+        <CardHeader className={cn(!hasBackuped && "blur-sm")}>
+          <CardTitle>Reset</CardTitle>
+        </CardHeader>
+        <CardContent className={cn("flex flex-col gap-4", !hasBackuped && "blur-sm")}>
+          <Button onClick={resetPlanning} variant={"destructive"}>
+            Reset course planning
+          </Button>
+          <Button onClick={resetGrading} variant={"destructive"}>
+            Reset grading
+          </Button>
+          <Button onClick={resetToRecommended} variant={"destructive"}>
+            Reset to recommended study plan
+          </Button>
+        </CardContent>
+        {!hasBackuped && (
+          <div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
+            <Lock size={50} />
+            <h2 className="text-center font-bold">Back up (Export) your Data before doing something dangerous!</h2>
+            <Button onClick={() => setHasBackuped(true)} variant={"destructive"}>
+              I like living on the Edge
+            </Button>
+          </div>
+        )}
+      </Card>
+    </section>
+  );
 }

@@ -1,28 +1,15 @@
 import { getCurrentSemester } from "@/lib/semester";
-import {
-  Course,
-  CourseGrading,
-  CourseGroup,
-  CoursePlan,
-  CustomCourse,
-  Semester,
-} from "@/types/courses";
+import { Course, CourseGrading, CourseGroup, CoursePlan, CustomCourse, Semester } from "@/types/courses";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { toast } from "sonner";
 import { gradesAtom } from "./grades";
 import { planningAtom } from "./planning";
 
-import {
-  courseGroups as aiCourseGroups,
-  rawCourses as aiRawCourses,
-} from "@/data/ai/courses";
+import { courseGroups as aiCourseGroups, rawCourses as aiRawCourses } from "@/data/ai/courses";
 import { dependencies as aiDependencies } from "@/data/ai/dependencies.ts";
 
-import {
-  courseGroups as csCourseGroups,
-  rawCourses as csRawCourses,
-} from "@/data/cs/courses.ts";
+import { courseGroups as csCourseGroups, rawCourses as csRawCourses } from "@/data/cs/courses.ts";
 import { dependencies as csDependencies } from "@/data/cs/dependencies.ts";
 import { compactSettings, decompactSettings } from "@/lib/compression";
 import { Dependencies } from "@/types/dependencies";
@@ -43,16 +30,9 @@ export const exportAtom = atom(
     };
     const compactedNoGrades = compactSettings({ ...exportData, grades: [] });
     const compacted = compactSettings({ ...exportData, grades });
-    const origin =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : (import.meta.env.VITE_APP_URL ?? "");
-    const compressedNoGrades = LZString.compressToEncodedURIComponent(
-      JSON.stringify(compactedNoGrades),
-    );
-    const compressed = LZString.compressToEncodedURIComponent(
-      JSON.stringify(compacted),
-    );
+    const origin = typeof window !== "undefined" ? window.location.origin : (import.meta.env.VITE_APP_URL ?? "");
+    const compressedNoGrades = LZString.compressToEncodedURIComponent(JSON.stringify(compactedNoGrades));
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(compacted));
     return {
       ...exportData,
       link: `${origin}/study-planner/?share=${compressed}`,
@@ -62,8 +42,7 @@ export const exportAtom = atom(
   (_get, set, data: string) => {
     if (!data) return;
     try {
-      const { grades, planning, settings, customCourses } =
-        decompactSettings(data);
+      const { grades, planning, settings, customCourses } = decompactSettings(data);
 
       set(onboardingAtom, true);
       set(gradesAtom, grades);
@@ -128,9 +107,7 @@ export const onboardingAtom = atom(
     set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
   },
 );
-export const courseGroupsAtom = atom<readonly CourseGroup<string>[]>((get) =>
-  get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
-);
+export const courseGroupsAtom = atom<readonly CourseGroup<string>[]>((get) => (get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups));
 
 export const rawCoursesAtom = atom<Course<string>[]>((get) => {
   const baseCourses = get(programAtom) == "AI" ? aiRawCourses : csRawCourses;

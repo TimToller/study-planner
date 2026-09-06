@@ -6,6 +6,6 @@ import type { Dependencies } from "@/types/dependencies";
  * and target is checked against a real course name from that catalog.
  */
 export const defineDependencies = <const Groups extends readonly CourseGroup<string>[]>(
-	_courseGroups: Groups,
-	dependencies: Dependencies<CourseSubjectOf<Groups>>,
+  _courseGroups: Groups,
+  dependencies: Dependencies<CourseSubjectOf<Groups>>,
 ) => dependencies;

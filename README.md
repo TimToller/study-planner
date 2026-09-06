@@ -25,11 +25,13 @@ Link: https://timtoller.github.io/study-planner/
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](https://choosealicense.com/licenses/mit/) for details.
+This project is licensed under the MIT License. See the
+[LICENSE](https://choosealicense.com/licenses/mit/) for details.
 
 ## 📝 Possible future Features
 
-Notice this is not a promise, but a list of possible features that could be added in the future.
+Notice this is not a promise, but a list of possible features that could be
+added in the future.
 
 - [x] Drag and drop course cards
 - [x] Course Errors, Warnings, Recommendations
@@ -49,4 +51,7 @@ Notice this is not a promise, but a list of possible features that could be adde
 
 ## 🤝 Contributing
 
-Contributions are welcome! This was a fun and quick side project, I definitely don't have the time to actively develop and improve this project, that's why I would be glad to have contributions of any kind. Please open an issue or submit a pull request for any changes.
+Contributions are welcome! This was a fun and quick side project, I definitely
+don't have the time to actively develop and improve this project, that's why I
+would be glad to have contributions of any kind. Please open an issue or submit
+a pull request for any changes.

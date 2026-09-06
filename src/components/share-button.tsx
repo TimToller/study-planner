@@ -7,14 +7,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button, type ButtonProps } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -30,26 +23,17 @@ const downloadBlob = (blob: Blob, filename: string) => {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
-export default function ShareButton({
-  className,
-  size = "default",
-  variant = "default",
-}: ShareButtonProps) {
+export default function ShareButton({ className, size = "default", variant = "default" }: ShareButtonProps) {
   const exportData = useAtomValue(exportAtom);
   const courses = useAtomValue(personalCoursesAtom);
   const startingSemester = useAtomValue(startingSemesterAtom);
-  const appUrl = new URL(
-    import.meta.env.BASE_URL,
-    window.location.origin,
-  ).toString();
+  const appUrl = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
   const [open, setOpen] = useState(false);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hideGrades, setHideGrades] = useState(true);
-  const shareLinkValue = hideGrades
-    ? exportData.linkWithoutGrades
-    : exportData.link;
+  const shareLinkValue = hideGrades ? exportData.linkWithoutGrades : exportData.link;
 
   useEffect(
     () => () => {
@@ -79,8 +63,7 @@ export default function ShareButton({
         url: shareLinkValue,
       });
     } catch (error) {
-      if ((error as DOMException).name !== "AbortError")
-        toast.error("Could not share the link");
+      if ((error as DOMException).name !== "AbortError") toast.error("Could not share the link");
     }
   };
 
@@ -117,8 +100,7 @@ export default function ShareButton({
         files: [file],
       });
     } catch (error) {
-      if ((error as DOMException).name !== "AbortError")
-        toast.error("Could not share the plan image");
+      if ((error as DOMException).name !== "AbortError") toast.error("Could not share the plan image");
     }
   };
 
@@ -163,8 +145,7 @@ export default function ShareButton({
         <Tabs
           defaultValue="link"
           onValueChange={(value) => {
-            if (value === "image" && !imageBlob && !isGenerating)
-              void generateImage();
+            if (value === "image" && !imageBlob && !isGenerating) void generateImage();
           }}
         >
           <TabsList className="grid w-full grid-cols-2">
@@ -177,16 +158,9 @@ export default function ShareButton({
           </TabsList>
           <TabsContent value="link" className="space-y-4 pt-2">
             <div className="rounded-lg border bg-muted/30 p-4">
-              <p className="mb-3 text-sm text-muted-foreground">
-                Anyone with this link can import a copy of your current plan.
-              </p>
+              <p className="mb-3 text-sm text-muted-foreground">Anyone with this link can import a copy of your current plan.</p>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  readOnly
-                  value={shareLinkValue}
-                  onFocus={(event) => event.currentTarget.select()}
-                  aria-label="Share link"
-                />
+                <Input readOnly value={shareLinkValue} onFocus={(event) => event.currentTarget.select()} aria-label="Share link" />
                 <Button type="button" variant="outline" onClick={copyShareLink}>
                   <Copy /> Copy
                 </Button>
@@ -204,39 +178,17 @@ export default function ShareButton({
                 </div>
               )}
               {!isGenerating && imageUrl && (
-                <img
-                  src={imageUrl}
-                  alt="Preview of your study plan"
-                  className="max-h-[48vh] rounded-md shadow-sm"
-                />
+                <img src={imageUrl} alt="Preview of your study plan" className="max-h-[48vh] rounded-md shadow-sm" />
               )}
               {!isGenerating && !imageUrl && (
-                <p className="text-sm text-muted-foreground">
-                  Generate an image preview of your planned courses.
-                </p>
+                <p className="text-sm text-muted-foreground">Generate an image preview of your planned courses.</p>
               )}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => void generateImage()}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Image />
-                )}{" "}
-                {imageBlob ? "Regenerate" : "Generate image"}
+              <Button type="button" variant="outline" className="flex-1" onClick={() => void generateImage()} disabled={isGenerating}>
+                {isGenerating ? <Loader2 className="animate-spin" /> : <Image />} {imageBlob ? "Regenerate" : "Generate image"}
               </Button>
-              <Button
-                type="button"
-                className="flex-1"
-                onClick={shareImage}
-                disabled={!imageBlob || isGenerating}
-              >
+              <Button type="button" className="flex-1" onClick={shareImage} disabled={!imageBlob || isGenerating}>
                 <Download /> Share or download
               </Button>
             </div>
