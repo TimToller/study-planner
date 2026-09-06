@@ -1,5 +1,7 @@
 import { useAtom } from "jotai";
+import { useState } from "react";
 import Footer from "./components/footer";
+import ScholarshipApplicationBanner from "./components/scholarship-application-banner";
 import ShareImportDialog from "./components/share-import-dialog";
 import { ThemeProvider } from "./components/theme-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
@@ -12,6 +14,14 @@ import { onboardingAtom } from "./store/settings";
 
 function App() {
 	const [onboardingCompleted] = useAtom(onboardingAtom);
+	const [activeTab, setActiveTab] = useState("board");
+
+	const openScholarship = () => {
+		setActiveTab("grades");
+		requestAnimationFrame(() => {
+			document.getElementById("merit-scholarship")?.scrollIntoView({ behavior: "smooth", block: "start" });
+		});
+	};
 
 	return (
 		<main className="flex flex-col items-center dark:bg-gray-900">
@@ -20,7 +30,11 @@ function App() {
 				{!onboardingCompleted ? (
 					<OnboardingScreen />
 				) : (
-					<Tabs defaultValue="board" className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7">
+					<Tabs
+						value={activeTab}
+						onValueChange={setActiveTab}
+						className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7">
+						<ScholarshipApplicationBanner onViewScholarship={openScholarship} />
 						<TabsList className="grid w-full max-w-md grid-cols-4">
 							<TabsTrigger value="board">Board</TabsTrigger>
 							<TabsTrigger value="list">List</TabsTrigger>

@@ -4,15 +4,36 @@ import { gradesAtom } from "./grades";
 import { planningAtom } from "./planning";
 import { rawCoursesAtom } from "./settings";
 
+export const isScholarshipApplicationPeriod = (date = new Date()) => date.getMonth() === 9;
+
+export const SCHOLARSHIP_CHANCES = {
+	notEligible: "Not eligible",
+	low: "Low",
+	moderate: "Moderate",
+	good: "Good",
+	veryGood: "Very Good",
+} as const;
+
+export type ScholarshipChance = (typeof SCHOLARSHIP_CHANCES)[keyof typeof SCHOLARSHIP_CHANCES];
+
+export interface ScholarshipEstimate {
+	average: number | undefined;
+	ects: number;
+	latestSemester?: number;
+	points?: number;
+	chances?: ScholarshipChance;
+}
+
 //TODO This could be improved
-const getChances = (average: number, points: number, ects: number) => {
-	if (average > 2 || points < 230 || ects < 40) return "Low";
-	if (points < 250) return "Moderate";
-	if (points < 330) return "Good";
-	return "Very Good";
+const getChances = (average: number, points: number, ects: number): ScholarshipChance => {
+	if (average > 2 || ects < 40) return SCHOLARSHIP_CHANCES.notEligible;
+	if (points < 230) return SCHOLARSHIP_CHANCES.low;
+	if (points < 250) return SCHOLARSHIP_CHANCES.moderate;
+	if (points < 330) return SCHOLARSHIP_CHANCES.good;
+	return SCHOLARSHIP_CHANCES.veryGood;
 };
 
-export const recentCourseAverageAtom = atom((get) => {
+export const recentCourseAverageAtom = atom<ScholarshipEstimate>((get) => {
 	const grades = get(gradesAtom).filter((g) => g.grade !== undefined);
 	if (grades.length === 0) return { average: undefined, ects: 0 };
 
