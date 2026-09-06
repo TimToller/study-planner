@@ -102,7 +102,7 @@ export const onboardingAtom = atom(
 		set(settingsAtom, { ...get(settingsAtom), onboardingCompleted: value });
 	},
 );
-export const courseGroupsAtom = atom<CourseGroup<string>[]>((get) =>
+export const courseGroupsAtom = atom<readonly CourseGroup<string>[]>((get) =>
 	get(programAtom) == "AI" ? aiCourseGroups : csCourseGroups,
 );
 
@@ -114,6 +114,7 @@ export const rawCoursesAtom = atom<Course<string>[]>((get) => {
 		...baseCourses,
 		...customCourses.map((course) => ({
 			...course,
+			subject: { catalog: "custom", key: course.name, name: course.name },
 			name: `${course.type} ${course.name}`,
 			id: `${course.type} ${course.name}`,
 			recommendedSemester: null,
@@ -122,4 +123,6 @@ export const rawCoursesAtom = atom<Course<string>[]>((get) => {
 	];
 });
 
-export const dependenciesAtom = atom<Dependencies<string>>((get) => (get(programAtom) == "AI" ? aiDependencies : csDependencies));
+export const dependenciesAtom = atom<Dependencies<Course["subject"]>>((get) =>
+	get(programAtom) == "AI" ? aiDependencies : csDependencies,
+);

@@ -3,18 +3,26 @@ import { Course, CoursePlan } from "@/types/courses";
 import { getCourseByName } from "@/lib/course";
 import { AREA_OF_SPECIALIZATION_REQUIRED_ECTS, FREE_ELECTIVE_REQUIRED_ECTS } from "@/lib/requirements";
 import { getSemester } from "@/lib/semester";
+import { evaluateSteop, STEOP_RULES } from "@/lib/steop";
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { gradesAtom } from "./grades";
-import { dependenciesAtom, ignoreGradedAtom, rawCoursesAtom, startingSemesterAtom } from "./settings";
+import { dependenciesAtom, ignoreGradedAtom, programAtom, rawCoursesAtom, startingSemesterAtom } from "./settings";
 
 export const planningAtom = atomWithStorage<CoursePlan[]>("semester-plans", []);
+
+export const normalizePlannedSemester = (semester: unknown): CoursePlan["plannedSemester"] => {
+	if (semester === "accredited") return semester;
+	if (typeof semester === "number" && Number.isInteger(semester) && semester > 0) return semester;
+	return undefined;
+};
 
 export const setPlanningAtom = atom(null, (get, set, course: CoursePlan) => {
 	const current = get(planningAtom);
 	const index = current.findIndex((p) => p.name === course.name);
+	const plannedSemester = normalizePlannedSemester(course.plannedSemester);
 
-	if (course.plannedSemester === undefined) {
+	if (plannedSemester === undefined) {
 		if (index !== -1) {
 			const updated = [...current];
 			updated.splice(index, 1);
@@ -23,10 +31,10 @@ export const setPlanningAtom = atom(null, (get, set, course: CoursePlan) => {
 		return;
 	}
 	if (index === -1) {
-		set(planningAtom, [...current, course]);
+		set(planningAtom, [...current, { ...course, plannedSemester }]);
 	} else {
 		const updated = [...current];
-		updated[index] = course;
+		updated[index] = { ...course, plannedSemester };
 		set(planningAtom, updated);
 	}
 });
@@ -34,11 +42,12 @@ export const setPlanningAtom = atom(null, (get, set, course: CoursePlan) => {
 export const personalCoursesAtom = atom((get) => {
 	const grades = get(gradesAtom);
 	const planning = get(planningAtom);
+	const plannedSemesters = new Map(planning.map((plan) => [plan.name, normalizePlannedSemester(plan.plannedSemester)]));
 
 	return get(rawCoursesAtom).map((c) => ({
 		...c,
 		grade: grades.find((p) => p.name === c.name)?.grade,
-		plannedSemester: planning.find((p) => p.name === c.name)?.plannedSemester,
+		plannedSemester: plannedSemesters.get(c.name),
 	}));
 });
 
@@ -47,10 +56,15 @@ export interface PlanningInfo {
 	courses?: Course<string>[];
 }
 export const planningInfoAtom = atom((get) => {
-	const planning = get(planningAtom);
+	const planning = get(planningAtom).flatMap((plan) => {
+		const plannedSemester = normalizePlannedSemester(plan.plannedSemester);
+		return plannedSemester === undefined ? [] : [{ ...plan, plannedSemester }];
+	});
 	const startingSemester = get(startingSemesterAtom);
 	const ignoreGraded = get(ignoreGradedAtom);
 	const grades = get(gradesAtom);
+	const program = get(programAtom);
+	const rawCourses = get(rawCoursesAtom);
 
 	const errors: PlanningInfo[] = [];
 	const warnings: PlanningInfo[] = [];
@@ -99,29 +113,29 @@ export const planningInfoAtom = atom((get) => {
 
 		//check VL and UE in same semester
 		if (courseData.type === "UE") {
-			const courseVL = planning.find(
-				(p) =>
-					p.name.slice(3) === course.name.slice(3) &&
-					p.plannedSemester !== "accredited" &&
-					getCourseByName(get(rawCoursesAtom), p.name)!.type === "VL",
-			);
+			const courseVL = planning.find((plan) => {
+				const plannedCourse = getCourseByName(rawCourses, plan.name);
+				return plannedCourse?.subject === courseData.subject && plan.plannedSemester !== "accredited" && plannedCourse.type === "VL";
+			});
+			const courseVLData = courseVL ? getCourseByName(rawCourses, courseVL.name) : undefined;
 
 			if (
 				courseVL &&
+				courseVLData &&
 				course.plannedSemester !== courseVL.plannedSemester &&
-				courseData.recommendedSemester === getCourseByName(get(rawCoursesAtom), courseVL.name)!.recommendedSemester
+				courseData.recommendedSemester === courseVLData.recommendedSemester
 			) {
 				warnings.push({
 					message: `Course **${course.name}** should ideally be taken in the same semester as the lecture`,
-					courses: get(rawCoursesAtom).filter((c) => c.name.slice(3) === courseVL.name.slice(3)),
+					courses: rawCourses.filter((candidate) => candidate.subject === courseData.subject),
 				});
 			}
 		}
 
 		//check dependencies
-		const courseDependencies = get(dependenciesAtom).find((d) => d.name === course.name.slice(3))?.dependencies || [];
+		const courseDependencies = get(dependenciesAtom).find((dependency) => dependency.course === courseData.subject)?.dependencies ?? [];
 		for (const dependency of courseDependencies) {
-			const requiredCourses = get(rawCoursesAtom).filter((c) => c.name.slice(3) === dependency.name);
+			const requiredCourses = rawCourses.filter((candidate) => candidate.subject === dependency.course);
 			const missingCourses = requiredCourses.filter(
 				(c) =>
 					!planning.some(
@@ -178,6 +192,33 @@ export const planningInfoAtom = atom((get) => {
 			message: `You have only **${aosECTS} ECTS** of area of specialization planned. You should still have to do **${
 				AREA_OF_SPECIALIZATION_REQUIRED_ECTS - aosECTS
 			} ECTS** of area of specialization.`,
+		});
+	}
+
+	const steopRule = STEOP_RULES[program];
+	const steop = evaluateSteop(program, rawCourses, planning, grades);
+
+	if (steop.completionSemester === null) {
+		const missingECTS = Math.max(0, steopRule.requiredECTS - steop.projectedECTS);
+		recommendations.push({
+			message: `Your plan does not complete **StEOP**. Add at least **${missingECTS} more ECTS** from the program's StEOP core-course pool.`,
+			courses: steop.unplannedCoreCourses,
+		});
+	}
+
+	if (steop.restrictedCourses.length > 0) {
+		errors.push({
+			message: `Before completing **StEOP**, you may only complete its core courses and the designated additional-course pool. Move **${steop.restrictedCourses
+				.map((course) => course.name)
+				.join(", ")}** until after StEOP.`,
+			courses: steop.restrictedCourses,
+		});
+	}
+
+	if (steop.additionalECTSBeforeCompletion > steopRule.maxAdditionalECTS) {
+		errors.push({
+			message: `You planned **${steop.additionalECTSBeforeCompletion} additional ECTS** before completing StEOP; the ${program} limit is **${steopRule.maxAdditionalECTS} ECTS**.`,
+			courses: steop.additionalCoursesBeforeCompletion,
 		});
 	}
 

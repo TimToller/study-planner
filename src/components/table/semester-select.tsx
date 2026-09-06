@@ -1,18 +1,21 @@
 import { formatSemester } from "@/lib/semester";
 import { startingSemesterAtom } from "@/store/settings";
+import { CoursePlan } from "@/types/courses";
 import { useAtom } from "jotai";
 import React, { useCallback } from "react";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 
 interface SemesterSelectProps {
 	semester?: number | "accredited";
-	onSemesterChange: (newSemester: number | undefined) => void;
+	onSemesterChange: (newSemester: CoursePlan["plannedSemester"]) => void;
 }
 
 const SemesterSelect = React.memo(function SemesterSelect({ semester, onSemesterChange }: SemesterSelectProps) {
 	const handleValueChange = useCallback(
 		(newSemester: string) => {
-			onSemesterChange(newSemester === "none" ? undefined : parseInt(newSemester, 10));
+			onSemesterChange(
+				newSemester === "none" ? undefined : newSemester === "accredited" ? "accredited" : parseInt(newSemester, 10),
+			);
 		},
 		[onSemesterChange],
 	);

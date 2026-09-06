@@ -23,6 +23,7 @@ import { useAtom } from "jotai";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
 import CustomCourseForm, { VARIANT_MAP } from "./custom-course-form";
 
@@ -194,6 +195,7 @@ export default function DraggableBoard() {
 	}, [courses, startSemester]);
 
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+	const [availableCourseSearch, setAvailableCourseSearch] = useState("");
 
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -216,7 +218,13 @@ export default function DraggableBoard() {
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
-		if (!over) return;
+		if (!over) {
+			const course = findCourseById(active.id);
+			if (course?.plannedSemester !== undefined) {
+				planCourse({ name: course.name, plannedSemester: undefined });
+			}
+			return;
+		}
 
 		const activeContainer = findContainer(active.id);
 		let overContainer = findContainer(over.id);
@@ -264,7 +272,11 @@ export default function DraggableBoard() {
 			planCourse({
 				name: movingCourse.name,
 				plannedSemester:
-					overContainer === "accredited" ? overContainer : parseInt((overContainer as string).replace("semester", ""), 10),
+					overContainer === "search"
+						? undefined
+						: overContainer === "accredited"
+							? overContainer
+							: parseInt((overContainer as string).replace("semester", ""), 10),
 			});
 		}
 	};
@@ -281,6 +293,14 @@ export default function DraggableBoard() {
 		if (recommendation) return "recommendation";
 		return;
 	};
+	const normalizedAvailableCourseSearch = availableCourseSearch.trim().toLowerCase();
+	const visibleAvailableCourses = columns.search.courses.filter(
+		(course) =>
+			normalizedAvailableCourseSearch.length === 0 ||
+			course.name.toLowerCase().includes(normalizedAvailableCourseSearch) ||
+			course.type.toLowerCase().includes(normalizedAvailableCourseSearch) ||
+			course.group.toLowerCase().includes(normalizedAvailableCourseSearch),
+	);
 
 	return (
 		<DndContext
@@ -321,12 +341,22 @@ export default function DraggableBoard() {
 				</div>
 				<div className="h-[60vh] lg:h-[95vh] rounded-md p-2 border-2 shadow-md w-full lg:w-auto lg:sticky lg:top-2 lg:bottom-2 lg:min-w-[300px]">
 					<ScrollArea className="h-full p-2">
-						<h2 className="text-xl font-semibold mb-4 text-foreground">Available Courses</h2>
+						<h2 className="text-xl font-semibold mb-3 text-foreground">Available Courses</h2>
+						<Input
+							value={availableCourseSearch}
+							onChange={(event) => setAvailableCourseSearch(event.target.value)}
+							placeholder="Search available courses..."
+							aria-label="Search available courses"
+							className="mx-1 mb-3 w-[calc(100%-0.5rem)]"
+						/>
 						<DroppableContainer id="search">
-							<SortableContext items={columns.search.courses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
-								{columns.search.courses.map((course) => (
+							<SortableContext items={visibleAvailableCourses.map((course) => course.id)} strategy={verticalListSortingStrategy}>
+								{visibleAvailableCourses.map((course) => (
 									<SortableItem key={course.id} course={course} containerId="search" />
 								))}
+								{visibleAvailableCourses.length === 0 && (
+									<p className="py-4 text-center text-sm text-muted-foreground">No available courses found.</p>
+								)}
 							</SortableContext>
 						</DroppableContainer>
 						<CustomCourseForm />

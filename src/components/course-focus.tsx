@@ -54,7 +54,7 @@ export default function CourseFocus() {
 			const groupStat = stats.find((s) => s.name === group.name);
 
 			const courses = group.courses.map((c) => {
-				const key = `${c.type} ${c.name}`;
+				const key = `${c.type} ${c.subject.name}`;
 				const real = realMap.get(key);
 				const simulated = simMap.get(key);
 				const important = importanceMap.get(key);

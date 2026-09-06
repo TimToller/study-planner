@@ -1,136 +1,136 @@
-import {Dependencies} from "@/types/dependencies";
-import {CourseName} from "@/data/ai/courses";
+import { aiCourses, courseGroups } from "@/data/ai/courses";
+import { defineDependencies } from "@/data/dependencies";
 
-export const dependencies: Dependencies<CourseName> = [
+export const dependencies = defineDependencies(courseGroups, [
 	{
-		name: "Hands-on AI II",
+		course: aiCourses.handsOnAiII,
 		dependencies: [
-			{ name: "Hands-on AI I", type: "hard" },
-			{ name: "Programming in Python I", type: "hard" },
+			{ course: aiCourses.handsOnAiI, type: "hard" },
+			{ course: aiCourses.programmingInPythonI, type: "hard" },
 		],
 	},
 	{
-		name: "Programming in Python II",
-		dependencies: [{ name: "Programming in Python I", type: "hard" }],
+		course: aiCourses.programmingInPythonII,
+		dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
 	},
 	{
-		name: "Algorithms and Data Structures I",
-		dependencies: [{ name: "Programming in Python I", type: "hard" }],
+		course: aiCourses.algorithmsAndDataStructuresI,
+		dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
 	},
 	{
-		name: "Statistics for AI",
-		dependencies: [{ name: "Mathematics for AI I", type: "recommended" }],
+		course: aiCourses.statisticsForAi,
+		dependencies: [{ course: aiCourses.mathematicsForAiI, type: "recommended" }],
 	},
 	{
-		name: "Mathematics for AI II",
-		dependencies: [{ name: "Mathematics for AI I", type: "hard" }],
+		course: aiCourses.mathematicsForAiII,
+		dependencies: [{ course: aiCourses.mathematicsForAiI, type: "hard" }],
 	},
 	{
-		name: "Artificial Intelligence",
-		dependencies: [{ name: "Programming in Python I", type: "hard" }],
+		course: aiCourses.artificialIntelligence,
+		dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
 	},
 	{
-		name: "Algorithms and Data Structures II",
+		course: aiCourses.algorithmsAndDataStructuresII,
 		dependencies: [
-			{ name: "Algorithms and Data Structures I", type: "hard" },
-			{ name: "Programming in Python I", type: "hard" },
+			{ course: aiCourses.algorithmsAndDataStructuresI, type: "hard" },
+			{ course: aiCourses.programmingInPythonI, type: "hard" },
 		],
 	},
 	{
-		name: "Machine Learning: Basic Techniques",
+		course: aiCourses.machineLearningBasicTechniques,
 		dependencies: [
-			{ name: "Statistics for AI", type: "soft" },
-			{ name: "Mathematics for AI II", type: "soft" },
+			{ course: aiCourses.statisticsForAi, type: "soft" },
+			{ course: aiCourses.mathematicsForAiII, type: "soft" },
 		],
 	},
 	{
-		name: "Visualization",
-		dependencies: [{ name: "Programming in Python I", type: "hard" }],
+		course: aiCourses.visualization,
+		dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
 	},
 	{
-		name: "Machine Learning: Supervised Techniques",
+		course: aiCourses.machineLearningSupervisedTechniques,
 		dependencies: [
-			{ name: "Programming in Python II", type: "hard" },
-			{ name: "Mathematics for AI II", type: "hard" },
-			{ name: "Mathematics for AI III", type: "recommended" },
-			{ name: "Machine Learning: Basic Techniques", type: "recommended" },
+			{ course: aiCourses.programmingInPythonII, type: "hard" },
+			{ course: aiCourses.mathematicsForAiII, type: "hard" },
+			{ course: aiCourses.mathematicsForAiIII, type: "recommended" },
+			{ course: aiCourses.machineLearningBasicTechniques, type: "recommended" },
 		],
 	},
 	{
-		name: "Mathematics for AI III",
-		dependencies: [{ name: "Mathematics for AI II", type: "hard" }],
+		course: aiCourses.mathematicsForAiIII,
+		dependencies: [{ course: aiCourses.mathematicsForAiII, type: "hard" }],
 	},
 	{
-		name: "Learning from User-generated Data",
-		dependencies: [{ name: "Programming in Python I", type: "hard" }],
+		course: aiCourses.learningFromUserGeneratedData,
+		dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
 	},
 	{
-		name: "Computational Data Analytics",
-		dependencies: [{ name: "Machine Learning: Supervised Techniques", type: "recommended" }],
+		course: aiCourses.computationalDataAnalytics,
+		dependencies: [{ course: aiCourses.machineLearningSupervisedTechniques, type: "recommended" }],
 	},
 	{
-		name: "Formal Models",
-		dependencies: [{ name: "Logic", type: "hard" }],
+		course: aiCourses.formalModelsForAi,
+		dependencies: [{ course: aiCourses.logic, type: "hard" }],
 	},
 	{
-		name: "Machine Learning: Unsupervised Techniques",
+		course: aiCourses.machineLearningUnsupervisedTechniques,
 		dependencies: [
-			{ name: "Programming in Python II", type: "hard" },
-			{ name: "Mathematics for AI II", type: "hard" },
-			{ name: "Mathematics for AI III", type: "soft" },
-			{ name: "Machine Learning: Basic Techniques", type: "soft" },
-			{ name: "Machine Learning: Supervised Techniques", type: "soft" },
+			{ course: aiCourses.programmingInPythonII, type: "hard" },
+			{ course: aiCourses.mathematicsForAiII, type: "hard" },
+			{ course: aiCourses.mathematicsForAiIII, type: "soft" },
+			{ course: aiCourses.machineLearningBasicTechniques, type: "soft" },
+			{ course: aiCourses.machineLearningSupervisedTechniques, type: "soft" },
 		],
 	},
 	{
-		name: "Machine Learning and Pattern Classification",
+		course: aiCourses.machineLearningAndPatternClassification,
 		dependencies: [
-			{ name: "Programming in Python I", type: "hard" },
-			{ name: "Programming in Python II", type: "soft" },
-			{ name: "Machine Learning: Supervised Techniques", type: "recommended" },
+			{ course: aiCourses.programmingInPythonI, type: "hard" },
+			{ course: aiCourses.programmingInPythonII, type: "soft" },
+			{ course: aiCourses.machineLearningSupervisedTechniques, type: "recommended" },
 		],
 	},
 	{
-		name: "Numerical Optimization",
+		course: aiCourses.numericalOptimization,
 		dependencies: [
-			{ name: "Mathematics for AI II", type: "hard" },
-			{ name: "Mathematics for AI III", type: "recommended" },
+			{ course: aiCourses.mathematicsForAiII, type: "hard" },
+			{ course: aiCourses.mathematicsForAiIII, type: "recommended" },
 		],
 	},
 	{
-		name: "Practical Work in AI",
-		dependencies: [{ name: "Seminar in AI", type: "recommended" }],
+		course: aiCourses.practicalWorkInAi,
+		dependencies: [{ course: aiCourses.seminarInAi, type: "recommended" }],
 	},
 	{
-		name: "Introduction to Computational Statistics",
+		course: aiCourses.introductionToComputationalStatistics,
 		dependencies: [
-			{ name: "Statistics for AI", type: "hard" },
-			{ name: "Machine Learning: Basic Techniques", type: "soft" },
-			{ name: "Mathematics for AI II", type: "recommended" },
+			{ course: aiCourses.statisticsForAi, type: "hard" },
+			{ course: aiCourses.machineLearningBasicTechniques, type: "soft" },
+			{ course: aiCourses.mathematicsForAiII, type: "recommended" },
 		],
 	},
 	{
-		name: "Natural Language Processing",
-		dependencies: [{ name: "Programming in Python I", type: "hard" }],
+		course: aiCourses.naturalLanguageProcessing,
+		dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
 	},
 	{
-		name: "Computational Logics for AI",
-		dependencies: [{ name: "Formal Models", type: "soft" }],
+		course: aiCourses.computationalLogicsForAi,
+		dependencies: [{ course: aiCourses.formalModelsForAi, type: "soft" }],
 	},
 	{
-		name: "Reinforcement Learning",
+		course: aiCourses.reinforcementLearning,
 		dependencies: [
-			{ name: "Programming in Python I", type: "hard" },
-			{ name: "Artificial Intelligence", type: "soft" },
+			{ course: aiCourses.programmingInPythonI, type: "hard" },
+			{ course: aiCourses.artificialIntelligence, type: "soft" },
 		],
 	},
 
 	{
-		name: "Digital Signal Processing",
-		dependencies: [{ name: "Mathematics for AI III", type: "hard" }],
+		course: aiCourses.digitalSignalProcessing,
+		dependencies: [{ course: aiCourses.mathematicsForAiIII, type: "hard" }],
 	},
 	{
-		name: "Bachelor Thesis",
-		dependencies: [{ name: "Practical Work in AI", type: "recommended" }],
+		course: aiCourses.bachelorThesis,
+		dependencies: [{ course: aiCourses.practicalWorkInAi, type: "recommended" }],
 	},
-];
+]);

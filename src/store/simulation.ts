@@ -59,7 +59,7 @@ export const groupStatsAtom = atom((get) => {
 	const ects = get(ectsMapAtom);
 
 	return get(courseGroupsAtom).map((group) => {
-		const groupGrades = grades.filter((g) => group.courses.some((c) => `${c.type} ${c.name}` === g.name));
+		const groupGrades = grades.filter((g) => group.courses.some((c) => `${c.type} ${c.subject.name}` === g.name));
 
 		const average = weightedAverage(
 			groupGrades.map((g) => ({
@@ -71,7 +71,7 @@ export const groupStatsAtom = atom((get) => {
 		const totalECTS = group.courses.reduce((sum, c) => sum + c.ects, 0);
 
 		const gradedECTS = group.courses
-			.filter((c) => grades.some((g) => g.name === `${c.type} ${c.name}`))
+			.filter((c) => grades.some((g) => g.name === `${c.type} ${c.subject.name}`))
 			.reduce((sum, c) => sum + c.ects, 0);
 
 		const gradedSum = groupGrades.reduce((sum, g) => {
@@ -309,7 +309,7 @@ export const setLowerBoundSimulationGradesAtom = atom(null, (get, set) => {
 		const missing: { key: string; ects: number }[] = [];
 
 		for (const c of group.courses) {
-			const key = `${c.type} ${c.name}`;
+			const key = `${c.type} ${c.subject.name}`;
 			totalECTS += c.ects;
 
 			const g = fixedMap.get(key);
@@ -428,9 +428,9 @@ export const courseImportanceAtom = atom<CourseImportance[]>((get) => {
 			const distance = isNaN(groupAvg) ? 1 : Math.max(0, groupAvg - targetGrade) + 0.1; // +0.1 so zero distance ≠ drop to 0
 
 			return group.courses
-				.filter((c) => !gradedNames.has(`${c.type} ${c.name}`))
+				.filter((c) => !gradedNames.has(`${c.type} ${c.subject.name}`))
 				.map((c) => {
-					const courseKey = `${c.type} ${c.name}`;
+					const courseKey = `${c.type} ${c.subject.name}`;
 					const ectsShare = c.ects / totalECTS; // share inside its group
 
 					// Potential improvement if you score targetGrade in this course

@@ -1,136 +1,136 @@
-import {Dependencies} from "@/types/dependencies";
-import {CourseName} from "@/data/cs/courses";
+import { courseGroups, csCourses } from "@/data/cs/courses";
+import { defineDependencies } from "@/data/dependencies";
 
-export const dependencies: Dependencies<CourseName> = [
+export const dependencies = defineDependencies(courseGroups, [
     {
-        name: "Discrete Structures",
+        course: csCourses.discreteStructures,
         dependencies: [
-            { name: "Logic", type: "hard" },
+            { course: csCourses.logic, type: "hard" },
         ],
     },
     {
-        name: "Digital Circuits",
+        course: csCourses.digitalCircuits,
         dependencies: [
-            { name: "Logic", type: "hard" },
+            { course: csCourses.logic, type: "hard" },
         ],
     },
     {
-        name: "Algebra for Computer Science",
+        course: csCourses.algebraForComputerScience,
         dependencies: [
-            { name: "Discrete Structures", type: "hard" },
+            { course: csCourses.discreteStructures, type: "hard" },
         ],
     },
     {
-        name: "Algorithms and Data Structures 1",
+        course: csCourses.algorithmsAndDataStructures1,
         dependencies: [
-            { name: "Software Development 1", type: "hard" },
+            { course: csCourses.softwareDevelopment1, type: "hard" },
         ],
     },
     {
-        name: "Software Development 2",
+        course: csCourses.softwareDevelopment2,
         dependencies: [
-            { name: "Software Development 1", type: "hard" },
+            { course: csCourses.softwareDevelopment1, type: "hard" },
         ],
     },
     {
-        name: "Electronics",
+        course: csCourses.electronics,
         dependencies: [
-            { name: "Digital Circuits", type: "soft" },
+            { course: csCourses.digitalCircuits, type: "soft" },
         ],
     },
     {
-        name: "Computability and Complexity",
+        course: csCourses.computabilityAndComplexity,
         dependencies: [
-            { name: "Discrete Structures", type: "hard" }
+            { course: csCourses.discreteStructures, type: "hard" }
         ],
     },
     {
-        name: "Algorithms and Data Structures 2",
+        course: csCourses.algorithmsAndDataStructures2,
         dependencies: [
-            { name: "Algorithms and Data Structures 1", type: "hard" },
+            { course: csCourses.algorithmsAndDataStructures1, type: "hard" },
         ],
     },
     {
-        name: "Systems Programming",
+        course: csCourses.systemsProgramming,
         dependencies: [
-            { name: "Software Development 1", type: "hard" },
-            { name: "Operating Systems", type: "hard" },
+            { course: csCourses.softwareDevelopment1, type: "hard" },
+            { course: csCourses.operatingSystems, type: "hard" },
         ],
     },
     {
-        name: "Computer Networks",
+        course: csCourses.computerNetworks,
         dependencies: [
-            { name: "Operating Systems", type: "hard" },
+            { course: csCourses.operatingSystems, type: "hard" },
         ],
     },
     {
-        name: "Databases and Information Systems 2",
+        course: csCourses.databasesAndInformationSystems2,
         dependencies: [
-            { name: "Databases and Information Systems 1", type: "hard" },
+            { course: csCourses.databasesAndInformationSystems1, type: "hard" },
         ],
     },
     {
-        name: "Formal Models",
+        course: csCourses.formalModels,
         dependencies: [
-            { name: "Logic", type: "hard" },
-            { name: "Discrete Structures", type: "hard" },
+            { course: csCourses.logic, type: "hard" },
+            { course: csCourses.discreteStructures, type: "hard" },
         ],
     },
     {
-        name: "Computer Graphics",
+        course: csCourses.computerGraphics,
         dependencies: [
-            { name: "Algebra for Computer Science", type: "hard" },
-            { name: "Algorithms and Data Structures 2", type: "hard"},
+            { course: csCourses.algebraForComputerScience, type: "hard" },
+            { course: csCourses.algorithmsAndDataStructures2, type: "hard"},
         ],
     },
     {
-        name: "Practical Training in Software Development 2",
+        course: csCourses.practicalTrainingInSoftwareDevelopment2,
         dependencies: [
-            { name: "Software Development 2", type: "hard" },
+            { course: csCourses.softwareDevelopment2, type: "hard" },
         ],
     },
     {
-        name: "Computer Architecture",
+        course: csCourses.computerArchitecture,
         dependencies: [
-            { name: "Digital Circuits", type: "hard" },
+            { course: csCourses.digitalCircuits, type: "hard" },
         ],
     },
     {
-        name: "Artificial Intelligence",
+        course: csCourses.artificialIntelligence,
         dependencies: [
-            { name: "Discrete Structures", type: "hard" },
-            { name: "Computability and Complexity", type: "hard" },
-            { name: "Algorithms and Data Structures 2", type: "hard" },
+            { course: csCourses.discreteStructures, type: "hard" },
+            { course: csCourses.computabilityAndComplexity, type: "hard" },
+            { course: csCourses.algorithmsAndDataStructures2, type: "hard" },
         ],
     },
     {
-        name: "Compiler Construction",
+        course: csCourses.compilerConstruction,
         dependencies: [
-            { name: "Computability and Complexity", type: "hard" },
-            { name: "Software Development 2", type: "hard" },
+            { course: csCourses.computabilityAndComplexity, type: "hard" },
+            { course: csCourses.softwareDevelopment2, type: "hard" },
         ],
     },
     {
-        name: "Software Engineering",
+        course: csCourses.softwareEngineering,
         dependencies: [
-            { name: "Software Development 2", type: "hard" },
+            { course: csCourses.softwareDevelopment2, type: "hard" },
         ],
     },
     {
-        name: "Digital Signal Processing",
+        course: csCourses.digitalSignalProcessing,
         dependencies: [
-            { name: "Algebra for Computer Science", type: "hard" },
-            { name: "Analysis for Computer Science", type: "hard" },
-            { name: "Digital Circuits", type: "soft" },
-            { name: "Electronics", type: "hard" },
+            { course: csCourses.algebraForComputerScience, type: "hard" },
+            { course: csCourses.analysisForComputerScience, type: "hard" },
+            { course: csCourses.digitalCircuits, type: "soft" },
+            { course: csCourses.electronics, type: "hard" },
         ],
     },
     {
-        name: "Embedded and Pervasive Systems",
+        course: csCourses.embeddedAndPervasiveSystems,
         dependencies: [
-            { name: "Computer Networks", type: "hard" },
-            { name: "Statistics", type: "soft" },
-            { name: "Computer Architecture", type: "soft" },
+            { course: csCourses.computerNetworks, type: "hard" },
+            { course: csCourses.statistics, type: "soft" },
+            { course: csCourses.computerArchitecture, type: "soft" },
         ],
     },
-]
+])

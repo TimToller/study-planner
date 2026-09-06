@@ -1,13 +1,15 @@
+import type { CourseSubject } from "@/types/courses";
+
 export type DependencyType = "hard" | "soft" | "recommended";
 
-export interface Dependency<CourseName extends string> {
-    name: CourseName;
+export interface Dependency<Subject extends CourseSubject> {
+    course: Subject;
     type: DependencyType;
 }
 
-export interface CourseDependencies<CourseName extends string> {
-    name: CourseName
-    dependencies: Dependency<CourseName>[]
+export interface CourseDependencies<Subject extends CourseSubject> {
+    course: Subject
+    dependencies: Dependency<Subject>[]
 }
 
-export type Dependencies<CourseName extends string> = CourseDependencies<CourseName>[]
+export type Dependencies<Subject extends CourseSubject> = CourseDependencies<Subject>[]

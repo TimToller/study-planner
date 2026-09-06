@@ -265,7 +265,7 @@ function TableRowElement({
 	);
 
 	const handleSemesterChange = useCallback(
-		(newSemester: number | undefined) => {
+		(newSemester: Course["plannedSemester"]) => {
 			updatePlanning({ name, plannedSemester: newSemester });
 		},
 		[name, updatePlanning],

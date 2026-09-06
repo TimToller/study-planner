@@ -1,55 +1,56 @@
 import { generateRawCourses } from "@/data/courses.ts";
-import { CourseGroup } from "@/types/courses";
+import { defineCourseGroups, defineCourseSubjects } from "@/types/courses";
 
-export type CourseName =
-	| "Hands-on AI I"
-	| "Introduction to AI"
-	| "Current Topics in AI"
-	| "Responsible AI"
-	| "Programming in Python I"
-	| "Logic"
-	| "Mathematics for AI I"
-	| "Hands-on AI II"
-	| "Technology and Society"
-	| "Programming in Python II"
-	| "Algorithms and Data Structures I"
-	| "Statistics for AI"
-	| "Mathematics for AI II"
-	| "Artificial Intelligence"
-	| "Algorithms and Data Structures II"
-	| "Machine Learning: Basic Techniques"
-	| "Visualization"
-	| "Machine Learning: Supervised Techniques"
-	| "Mathematics for AI III"
-	| "Seminar in AI"
-	| "Learning from User-generated Data"
-	| "Computational Data Analytics"
-	| "Formal Models for AI"
-	| "Machine Learning: Unsupervised Techniques"
-	| "Machine Learning and Pattern Classification"
-	| "Numerical Optimization"
-	| "Practical Work in AI"
-	| "Introduction to Computational Statistics"
-	| "Natural Language Processing"
-	| "Computational Logics for AI"
-	| "Reinforcement Learning"
-	| "Gender Studies"
-	| "Digital Signal Processing"
-	| "Bachelor Thesis";
+export const aiCourses = defineCourseSubjects("AI", {
+	handsOnAiI: "Hands-on AI I",
+	introductionToAi: "Introduction to AI",
+	currentTopicsInAi: "Current Topics in AI",
+	responsibleAi: "Responsible AI",
+	programmingInPythonI: "Programming in Python I",
+	logic: "Logic",
+	mathematicsForAiI: "Mathematics for AI I",
+	handsOnAiII: "Hands-on AI II",
+	technologyAndSociety: "Technology and Society",
+	programmingInPythonII: "Programming in Python II",
+	algorithmsAndDataStructuresI: "Algorithms and Data Structures I",
+	statisticsForAi: "Statistics for AI",
+	mathematicsForAiII: "Mathematics for AI II",
+	artificialIntelligence: "Artificial Intelligence",
+	algorithmsAndDataStructuresII: "Algorithms and Data Structures II",
+	machineLearningBasicTechniques: "Machine Learning: Basic Techniques",
+	visualization: "Visualization",
+	machineLearningSupervisedTechniques: "Machine Learning: Supervised Techniques",
+	mathematicsForAiIII: "Mathematics for AI III",
+	seminarInAi: "Seminar in AI",
+	learningFromUserGeneratedData: "Learning from User-generated Data",
+	computationalDataAnalytics: "Computational Data Analytics",
+	formalModelsForAi: "Formal Models for AI",
+	machineLearningUnsupervisedTechniques: "Machine Learning: Unsupervised Techniques",
+	machineLearningAndPatternClassification: "Machine Learning and Pattern Classification",
+	numericalOptimization: "Numerical Optimization",
+	practicalWorkInAi: "Practical Work in AI",
+	introductionToComputationalStatistics: "Introduction to Computational Statistics",
+	naturalLanguageProcessing: "Natural Language Processing",
+	computationalLogicsForAi: "Computational Logics for AI",
+	reinforcementLearning: "Reinforcement Learning",
+	genderStudies: "Gender Studies",
+	digitalSignalProcessing: "Digital Signal Processing",
+	bachelorThesis: "Bachelor Thesis",
+});
 
-export const courseGroups: CourseGroup<CourseName>[] = [
+export const courseGroups = defineCourseGroups([
 	{
 		name: "AI Basics and Practical Training",
 		courses: [
-			{ type: "UE", name: "Hands-on AI I", ects: 1.5, available: "WS", recommendedSemester: 1 },
-			{ type: "VL", name: "Hands-on AI I", ects: 1.5, available: "WS", recommendedSemester: 1 },
-			{ type: "UE", name: "Hands-on AI II", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "VL", name: "Hands-on AI II", ects: 1.5, available: "SS", recommendedSemester: 2 },
-			{ type: "VL", name: "Introduction to AI", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "PR", name: "Practical Work in AI", ects: 7.5, recommendedSemester: 5 },
-			{ type: "SE", name: "Seminar in AI", ects: 3, recommendedSemester: 4 },
-			{ type: "UE", name: "Artificial Intelligence", ects: 1.5, available: "WS", recommendedSemester: 3 },
-			{ type: "VL", name: "Artificial Intelligence", ects: 3, available: "WS", recommendedSemester: 3 },
+			{ type: "UE", subject: aiCourses.handsOnAiI, ects: 1.5, available: "WS", recommendedSemester: 1, steop: "core" },
+			{ type: "VL", subject: aiCourses.handsOnAiI, ects: 1.5, available: "WS", recommendedSemester: 1, steop: "core" },
+			{ type: "UE", subject: aiCourses.handsOnAiII, ects: 3, available: "SS", recommendedSemester: 2, steop: "core" },
+			{ type: "VL", subject: aiCourses.handsOnAiII, ects: 1.5, available: "SS", recommendedSemester: 2, steop: "core" },
+			{ type: "VL", subject: aiCourses.introductionToAi, ects: 3, available: "WS", recommendedSemester: 1, steop: "core" },
+			{ type: "PR", subject: aiCourses.practicalWorkInAi, ects: 7.5, recommendedSemester: 5 },
+			{ type: "SE", subject: aiCourses.seminarInAi, ects: 3, recommendedSemester: 4 },
+			{ type: "UE", subject: aiCourses.artificialIntelligence, ects: 1.5, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "VL", subject: aiCourses.artificialIntelligence, ects: 3, available: "WS", recommendedSemester: 3, steop: "additional" },
 		],
 	},
 	{
@@ -57,57 +58,58 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 		courses: [
 			{
 				type: "VL",
-				name: "Current Topics in AI",
+				subject: aiCourses.currentTopicsInAi,
 				legacyNames: ["VL Lecture Series Artificial Intelligence"],
 				ects: 1.5,
 				available: "WS",
 				recommendedSemester: 1,
+				steop: "additional",
 			},
-			{ type: "KV", name: "Responsible AI", ects: 3, available: "SS", recommendedSemester: 4 },
-			{ type: "KV", name: "Technology and Society", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "KV", name: "Gender Studies", ects: 3, recommendedSemester: 6 },
+			{ type: "KV", subject: aiCourses.responsibleAi, ects: 3, available: "SS", recommendedSemester: 4, steop: "additional" },
+			{ type: "KV", subject: aiCourses.technologyAndSociety, ects: 3, available: "WS", recommendedSemester: 1, steop: "additional" },
+			{ type: "KV", subject: aiCourses.genderStudies, ects: 3, recommendedSemester: 6 },
 		],
 	},
 	{
 		name: "Computer Science",
 		courses: [
-			{ type: "UE", name: "Programming in Python I", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "VL", name: "Programming in Python I", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "UE", name: "Programming in Python II", ects: 1.5, available: "SS", recommendedSemester: 2 },
-			{ type: "VL", name: "Programming in Python II", ects: 1.5, available: "SS", recommendedSemester: 2 },
-			{ type: "UE", name: "Algorithms and Data Structures I", ects: 1.5, available: "SS", recommendedSemester: 2 },
-			{ type: "VL", name: "Algorithms and Data Structures I", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "UE", name: "Algorithms and Data Structures II", ects: 1.5, available: "WS", recommendedSemester: 3 },
-			{ type: "VL", name: "Algorithms and Data Structures II", ects: 3, available: "WS", recommendedSemester: 3 },
+			{ type: "UE", subject: aiCourses.programmingInPythonI, ects: 3, available: "WS", recommendedSemester: 1, steop: "core" },
+			{ type: "VL", subject: aiCourses.programmingInPythonI, ects: 3, available: "WS", recommendedSemester: 1, steop: "core" },
+			{ type: "UE", subject: aiCourses.programmingInPythonII, ects: 1.5, available: "SS", recommendedSemester: 2, steop: "core" },
+			{ type: "VL", subject: aiCourses.programmingInPythonII, ects: 1.5, available: "SS", recommendedSemester: 2, steop: "core" },
+			{ type: "UE", subject: aiCourses.algorithmsAndDataStructuresI, ects: 1.5, available: "SS", recommendedSemester: 2, steop: "additional" },
+			{ type: "VL", subject: aiCourses.algorithmsAndDataStructuresI, ects: 3, available: "SS", recommendedSemester: 2, steop: "core" },
+			{ type: "UE", subject: aiCourses.algorithmsAndDataStructuresII, ects: 1.5, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "VL", subject: aiCourses.algorithmsAndDataStructuresII, ects: 3, available: "WS", recommendedSemester: 3, steop: "additional" },
 		],
 	},
 	{
 		name: "Data Science",
 		courses: [
-			{ type: "UE", name: "Statistics for AI", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "VL", name: "Statistics for AI", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "KV", name: "Machine Learning: Basic Techniques", ects: 3, available: "WS", recommendedSemester: 3 },
-			{ type: "UE", name: "Visualization", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Visualization", ects: 3, available: "SS", recommendedSemester: 4 },
-			{ type: "UE", name: "Learning from User-generated Data", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Learning from User-generated Data", ects: 3, available: "SS", recommendedSemester: 4 },
-			{ type: "KV", name: "Computational Data Analytics", ects: 3, available: "SS", recommendedSemester: 4 },
-			{ type: "UE", name: "Introduction to Computational Statistics", ects: 1.5, available: "WS", recommendedSemester: 5 },
-			{ type: "VL", name: "Introduction to Computational Statistics", ects: 3, available: "WS", recommendedSemester: 5 },
-			{ type: "UE", name: "Natural Language Processing", ects: 1.5, available: "WS", recommendedSemester: 5 },
-			{ type: "VL", name: "Natural Language Processing", ects: 1.5, available: "WS", recommendedSemester: 5 },
-			{ type: "UE", name: "Digital Signal Processing", ects: 1.5, available: "SS", recommendedSemester: 6 },
-			{ type: "VL", name: "Digital Signal Processing", ects: 3, available: "SS", recommendedSemester: 6 },
+			{ type: "UE", subject: aiCourses.statisticsForAi, ects: 3, available: "SS", recommendedSemester: 2, steop: "additional" },
+			{ type: "VL", subject: aiCourses.statisticsForAi, ects: 3, available: "SS", recommendedSemester: 2, steop: "additional" },
+			{ type: "KV", subject: aiCourses.machineLearningBasicTechniques, ects: 3, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "UE", subject: aiCourses.visualization, ects: 1.5, available: "SS", recommendedSemester: 4, steop: "additional" },
+			{ type: "VL", subject: aiCourses.visualization, ects: 3, available: "SS", recommendedSemester: 4, steop: "additional" },
+			{ type: "UE", subject: aiCourses.learningFromUserGeneratedData, ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", subject: aiCourses.learningFromUserGeneratedData, ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "KV", subject: aiCourses.computationalDataAnalytics, ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "UE", subject: aiCourses.introductionToComputationalStatistics, ects: 1.5, available: "WS", recommendedSemester: 5 },
+			{ type: "VL", subject: aiCourses.introductionToComputationalStatistics, ects: 3, available: "WS", recommendedSemester: 5 },
+			{ type: "UE", subject: aiCourses.naturalLanguageProcessing, ects: 1.5, available: "WS", recommendedSemester: 5 },
+			{ type: "VL", subject: aiCourses.naturalLanguageProcessing, ects: 1.5, available: "WS", recommendedSemester: 5 },
+			{ type: "UE", subject: aiCourses.digitalSignalProcessing, ects: 1.5, available: "SS", recommendedSemester: 6 },
+			{ type: "VL", subject: aiCourses.digitalSignalProcessing, ects: 3, available: "SS", recommendedSemester: 6 },
 		],
 	},
 	{
 		name: "Knowledge Representation and Reasoning",
 		courses: [
-			{ type: "UE", name: "Logic", ects: 1.5, available: "WS", recommendedSemester: 1 },
-			{ type: "VL", name: "Logic", ects: 3, available: "WS", recommendedSemester: 1 },
+			{ type: "UE", subject: aiCourses.logic, ects: 1.5, available: "WS", recommendedSemester: 1, steop: "additional" },
+			{ type: "VL", subject: aiCourses.logic, ects: 3, available: "WS", recommendedSemester: 1, steop: "core" },
 			{
 				type: "UE",
-				name: "Formal Models for AI",
+				subject: aiCourses.formalModelsForAi,
 				legacyNames: ["UE Formal Models"],
 				ects: 1.5,
 				available: "WS",
@@ -115,46 +117,46 @@ export const courseGroups: CourseGroup<CourseName>[] = [
 			},
 			{
 				type: "VL",
-				name: "Formal Models for AI",
+				subject: aiCourses.formalModelsForAi,
 				legacyNames: ["VL Formal Models"],
 				ects: 3,
 				available: "WS",
 				recommendedSemester: 5,
 			},
-			{ type: "UE", name: "Computational Logics for AI", ects: 1.5, available: "WS", recommendedSemester: 3 },
-			{ type: "VL", name: "Computational Logics for AI", ects: 3, available: "WS", recommendedSemester: 3 },
+			{ type: "UE", subject: aiCourses.computationalLogicsForAi, ects: 1.5, available: "WS", recommendedSemester: 3 },
+			{ type: "VL", subject: aiCourses.computationalLogicsForAi, ects: 3, available: "WS", recommendedSemester: 3 },
 		],
 	},
 	{
 		name: "Machine Learning and Perception",
 		courses: [
-			{ type: "UE", name: "Machine Learning: Supervised Techniques", ects: 1.5, available: "WS", recommendedSemester: 3 },
-			{ type: "VL", name: "Machine Learning: Supervised Techniques", ects: 3, available: "WS", recommendedSemester: 3 },
-			{ type: "UE", name: "Machine Learning: Unsupervised Techniques", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Machine Learning: Unsupervised Techniques", ects: 3, available: "SS", recommendedSemester: 4 },
-			{ type: "UE", name: "Machine Learning and Pattern Classification", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Machine Learning and Pattern Classification", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "UE", name: "Reinforcement Learning", ects: 1.5, available: "WS", recommendedSemester: 5 },
-			{ type: "VL", name: "Reinforcement Learning", ects: 3, available: "WS", recommendedSemester: 5 },
+			{ type: "UE", subject: aiCourses.machineLearningSupervisedTechniques, ects: 1.5, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "VL", subject: aiCourses.machineLearningSupervisedTechniques, ects: 3, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "UE", subject: aiCourses.machineLearningUnsupervisedTechniques, ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", subject: aiCourses.machineLearningUnsupervisedTechniques, ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "UE", subject: aiCourses.machineLearningAndPatternClassification, ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", subject: aiCourses.machineLearningAndPatternClassification, ects: 3, available: "SS", recommendedSemester: 2 },
+			{ type: "UE", subject: aiCourses.reinforcementLearning, ects: 1.5, available: "WS", recommendedSemester: 5 },
+			{ type: "VL", subject: aiCourses.reinforcementLearning, ects: 3, available: "WS", recommendedSemester: 5 },
 		],
 	},
 	{
 		name: "Mathematics",
 		courses: [
-			{ type: "UE", name: "Mathematics for AI I", ects: 3, available: "WS", recommendedSemester: 1 },
-			{ type: "VL", name: "Mathematics for AI I", ects: 6, available: "WS", recommendedSemester: 1 },
-			{ type: "UE", name: "Mathematics for AI II", ects: 3, available: "SS", recommendedSemester: 2 },
-			{ type: "VL", name: "Mathematics for AI II", ects: 6, available: "SS", recommendedSemester: 2 },
-			{ type: "UE", name: "Mathematics for AI III", ects: 3, available: "WS", recommendedSemester: 3 },
-			{ type: "VL", name: "Mathematics for AI III", ects: 6, available: "WS", recommendedSemester: 3 },
-			{ type: "UE", name: "Numerical Optimization", ects: 1.5, available: "SS", recommendedSemester: 4 },
-			{ type: "VL", name: "Numerical Optimization", ects: 3, available: "SS", recommendedSemester: 4 },
+			{ type: "UE", subject: aiCourses.mathematicsForAiI, ects: 3, available: "WS", recommendedSemester: 1, steop: "additional" },
+			{ type: "VL", subject: aiCourses.mathematicsForAiI, ects: 6, available: "WS", recommendedSemester: 1, steop: "core" },
+			{ type: "UE", subject: aiCourses.mathematicsForAiII, ects: 3, available: "SS", recommendedSemester: 2, steop: "additional" },
+			{ type: "VL", subject: aiCourses.mathematicsForAiII, ects: 6, available: "SS", recommendedSemester: 2, steop: "core" },
+			{ type: "UE", subject: aiCourses.mathematicsForAiIII, ects: 3, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "VL", subject: aiCourses.mathematicsForAiIII, ects: 6, available: "WS", recommendedSemester: 3, steop: "additional" },
+			{ type: "UE", subject: aiCourses.numericalOptimization, ects: 1.5, available: "SS", recommendedSemester: 4 },
+			{ type: "VL", subject: aiCourses.numericalOptimization, ects: 3, available: "SS", recommendedSemester: 4 },
 		],
 	},
 	{
 		name: "Bachelor Thesis",
-		courses: [{ type: "SE", name: "Bachelor Thesis", ects: 9, recommendedSemester: 6 }],
+		courses: [{ type: "SE", subject: aiCourses.bachelorThesis, ects: 9, recommendedSemester: 6 }],
 	},
-];
+]);
 
 export const rawCourses = generateRawCourses(courseGroups);
