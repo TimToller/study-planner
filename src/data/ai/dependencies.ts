@@ -114,8 +114,8 @@ export const dependencies = defineDependencies(courseGroups, [
     dependencies: [{ course: aiCourses.programmingInPythonI, type: "hard" }],
   },
   {
-    course: aiCourses.computationalLogicsForAi,
-    dependencies: [{ course: aiCourses.formalModelsForAi, type: "soft" }],
+    course: aiCourses.formalModelsForAi,
+    dependencies: [{ course: aiCourses.computationalLogicsForAi, type: "recommended" }],
   },
   {
     course: aiCourses.reinforcementLearning,

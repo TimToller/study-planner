@@ -35,6 +35,7 @@ export const exportAtom = atom(
     const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(compacted));
     return {
       ...exportData,
+      grades,
       link: `${origin}/study-planner/?share=${compressed}`,
       linkWithoutGrades: `${origin}/study-planner/?share=${compressedNoGrades}`,
     };

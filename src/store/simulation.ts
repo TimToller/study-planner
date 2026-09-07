@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
+import { calculateUngradedCourseImpacts, type CourseImpactLevel } from "@/lib/course-impact";
 import { roundGrade, weightedAverage } from "@/lib/utils";
 import { CourseGrading } from "@/types/courses";
 
@@ -102,7 +103,7 @@ export const passedWithDistinctionSimAtom = atom((get) => {
   const grouped = get(groupStatsAtom)
     .filter((g) => g.name !== "Free Elective")
     .map((g) => g.rounded)
-    .filter((a) => !isNaN(a));
+    .filter((a) => !Number.isNaN(a));
 
   const noThreeOrWorse = grouped.every((a) => a < 3);
   const moreThanHalfAreOnes = grouped.filter((a) => a === 1).length > grouped.length / 2;
@@ -124,7 +125,7 @@ export const simulationGradesAverageAtom = atom((get) => {
 
   const groupAverages = get(groupStatsAtom)
     .map((g) => g.average)
-    .filter((a) => !isNaN(a));
+    .filter((a) => !Number.isNaN(a));
   const groupAverage =
     groupAverages.length > 0 ? groupAverages.reduce((sum, a) => sum + roundGrade(a), 0) / groupAverages.length : NaN;
 
@@ -333,14 +334,14 @@ export const setLowerBoundSimulationGradesAtom = atom(null, (get, set) => {
       missing,
       minAvg,
       maxAvg,
-      forcedOne: !isNaN(maxAvg) && roundGrade(maxAvg) === 1,
-      forcedNotOne: !isNaN(minAvg) && roundGrade(minAvg) > 1,
+      forcedOne: !Number.isNaN(maxAvg) && roundGrade(maxAvg) === 1,
+      forcedNotOne: !Number.isNaN(minAvg) && roundGrade(minAvg) > 1,
     };
   });
 
   // If not reachable given fixed constraints, best-effort: fill remaining with 1s (leave existing sim untouched)
-  const violatesAllA = computed.some((g) => !isNaN(g.minAvg) && roundGrade(g.minAvg) > 1);
-  const violatesDist = computed.some((g) => !isNaN(g.minAvg) && roundGrade(g.minAvg) >= 3);
+  const violatesAllA = computed.some((g) => !Number.isNaN(g.minAvg) && roundGrade(g.minAvg) > 1);
+  const violatesDist = computed.some((g) => !Number.isNaN(g.minAvg) && roundGrade(g.minAvg) >= 3);
 
   if ((goal === "allA" && violatesAllA) || (goal === "passedWithDistinction" && violatesDist)) {
     const filled = computed.flatMap((g) => g.missing.map((m) => ({ name: m.key, grade: 1 })));
@@ -412,61 +413,39 @@ export interface CourseImportance {
   courseName: string;
   groupName: string;
   ects: number;
-  importance: number; // higher = more impactful
-  explanation: string;
+  impact: CourseImpactLevel;
+  structuralImpact: number;
+  pivotal: boolean;
 }
 
 export const courseImportanceAtom = atom<CourseImportance[]>((get) => {
-  // const ectsMap = get(ectsMapAtom);
-  const combined = get(combinedGradesAtom);
-  const gradedNames = new Set(combined.filter((g) => g.grade !== undefined).map((g) => g.name));
-  const groups = get(groupStatsAtom);
-  const targetGrade = 1;
+  const recordedGrades = new Map(get(gradesAtom).map((grade) => [grade.name, grade.grade]));
 
   return get(courseGroupsAtom)
     .flatMap((group) => {
-      const stats = groups.find((g) => g.name === group.name)!;
+      const groupCourses = group.courses.map((course) => {
+        const courseName = `${course.type} ${course.subject.name}`;
+        return { name: courseName, ects: course.ects, grade: recordedGrades.get(courseName) };
+      });
 
-      const { average: groupAvg, gradedECTS, totalECTS } = stats;
-      const distance = isNaN(groupAvg) ? 1 : Math.max(0, groupAvg - targetGrade) + 0.1; // +0.1 so zero distance ≠ drop to 0
-
-      return group.courses
-        .filter((c) => !gradedNames.has(`${c.type} ${c.subject.name}`))
-        .map((c) => {
-          const courseKey = `${c.type} ${c.subject.name}`;
-          const ectsShare = c.ects / totalECTS; // share inside its group
-
-          // Potential improvement if you score targetGrade in this course
-          const newAvg = isNaN(groupAvg)
-            ? targetGrade
-            : (groupAvg * gradedECTS + targetGrade * c.ects) / (gradedECTS + c.ects);
-          const improvement = isNaN(groupAvg) ? 0 : groupAvg - newAvg;
-
-          // final score – tweak formula as you like
-          const score = ectsShare * distance + improvement;
-
-          // Human-readable explanation
-          const reasonLines: string[] = [];
-          reasonLines.push(`Worth ${c.ects} ECTS (${Math.round(ectsShare * 100)} % of the ${group.name} group).`);
-          if (!isNaN(groupAvg)) {
-            reasonLines.push(
-              `Group average is ${groupAvg.toFixed(2)} → needs -${distance.toFixed(2)} to hit ${targetGrade}.`,
-            );
-            reasonLines.push(
-              `Scoring a ${targetGrade} here would shift the group average by -${improvement.toFixed(2)} to ${newAvg.toFixed(2)}.`,
-            );
-          } else {
-            reasonLines.push(`Group has no grades yet - this course will set the initial tone.`);
-          }
-
-          return {
-            courseName: courseKey,
+      return calculateUngradedCourseImpacts(groupCourses).map(
+        (impact) =>
+          ({
+            courseName: impact.courseName,
             groupName: group.name,
-            ects: c.ects,
-            importance: Number(score.toFixed(3)),
-            explanation: reasonLines.join(" "),
-          } satisfies CourseImportance;
-        });
+            ects: groupCourses.find((course) => course.name === impact.courseName)?.ects ?? 0,
+            impact: impact.level,
+            structuralImpact: impact.structuralImpact,
+            pivotal: impact.pivotal,
+          }) satisfies CourseImportance,
+      );
     })
-    .sort((a, b) => b.importance - a.importance);
+    .sort((a, b) => {
+      const impactRank = { high: 3, medium: 2, low: 1 };
+      return (
+        impactRank[b.impact] - impactRank[a.impact] ||
+        b.structuralImpact - a.structuralImpact ||
+        a.courseName.localeCompare(b.courseName)
+      );
+    });
 });

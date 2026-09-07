@@ -1,20 +1,18 @@
-import { Button } from "./ui/button";
+import { ExternalLink } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer
-      className="h-28 w-full flex flex-row justify-center items-center text-white"
-      style={{
-        background:
-          "repeating-conic-gradient(from 30deg,#0000 0 120deg,#c0ccf2 0 180deg) 36px 20.772px, repeating-conic-gradient(from 30deg,#264bc0 0 60deg,#6a87e2 0 120deg,#c0ccf2 0 180deg)",
-        backgroundSize: "72px 42px",
-      }}
-    >
-      <div className="glass flex flex-row justify-center items-center p-3">
-        <h2>Made by Tim Toller with ❤️</h2>
-        <Button variant="link" asChild className="p-2 text-white">
-          <a href="https://github.com/TimToller/study-planner">GitHub</a>
-        </Button>
+    <footer className="mt-10 w-full border-t bg-card/50">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-2 px-6 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <p>Your data stays in this browser unless you share or export it.</p>
+        <a
+          href="https://github.com/TimToller/study-planner"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 font-bold text-foreground hover:text-primary"
+        >
+          GitHub <ExternalLink className="h-3.5 w-3.5" />
+        </a>
       </div>
     </footer>
   );

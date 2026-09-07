@@ -23,14 +23,14 @@ export function ProgramToggle() {
     setPlanning([]);
     setGrading([]);
 
-    toast.success("Successfully change Bachelor's Program");
+    toast.success(`Changed bachelor's programme to ${value}`);
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="w-full" asChild>
         <Button variant="destructive" className="w-full">
-          <span>Change Program (Resets all data)</span>
+          <span>Choose another programme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

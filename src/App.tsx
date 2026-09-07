@@ -1,17 +1,18 @@
 import { useAtom } from "jotai";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
+import AppHeader from "./components/app-header";
 import Footer from "./components/footer";
 import ScholarshipApplicationBanner from "./components/scholarship-application-banner";
-import ShareButton from "./components/share-button";
 import ShareImportDialog from "./components/share-import-dialog";
 import { ThemeProvider } from "./components/theme-provider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { Tabs, TabsContent } from "./components/ui/tabs";
 import BoardScreen from "./screens/board-screen";
-import GradesScreen from "./screens/grades-screen";
-import ListScreen from "./screens/list-screen";
 import OnboardingScreen from "./screens/onboarding";
-import SettingsScreen from "./screens/settings-screen";
 import { onboardingAtom } from "./store/settings";
+
+const GradesScreen = lazy(() => import("./screens/grades-screen"));
+const ListScreen = lazy(() => import("./screens/list-screen"));
+const SettingsScreen = lazy(() => import("./screens/settings-screen"));
 
 function App() {
   const [onboardingCompleted] = useAtom(onboardingAtom);
@@ -25,44 +26,48 @@ function App() {
   };
 
   return (
-    <main className="flex flex-col items-center dark:bg-gray-900">
+    <main className="flex min-h-screen flex-col bg-background">
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <ShareImportDialog />
         {!onboardingCompleted ? (
           <OnboardingScreen />
         ) : (
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full min-h-screen flex items-center flex-col px-3 py-4 sm:p-7"
-          >
-            <ScholarshipApplicationBanner onViewScholarship={openScholarship} />
-            <header className="flex w-full max-w-5xl flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-              <TabsList className="grid w-full max-w-md flex-1 grid-cols-4">
-                <TabsTrigger value="board">Board</TabsTrigger>
-                <TabsTrigger value="list">List</TabsTrigger>
-                <TabsTrigger value="grades">Grades</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-              </TabsList>
-              <ShareButton className="shadow-sm" />
-            </header>
-            <TabsContent value="board" className="w-full h-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-screen w-full flex-1 flex-col">
+            <AppHeader />
+            <div className="mx-auto w-full max-w-[1600px] px-3 pt-4 sm:px-6">
+              <ScholarshipApplicationBanner onViewScholarship={openScholarship} />
+            </div>
+            <TabsContent value="board" className="mx-auto h-full w-full max-w-[1600px] px-1 sm:px-2">
               <BoardScreen />
             </TabsContent>
-            <TabsContent value="list" className="w-full h-full">
-              <ListScreen />
+            <TabsContent value="list" className="mx-auto h-full w-full max-w-[1600px] px-1 sm:px-2">
+              <Suspense fallback={<ScreenFallback label="courses" />}>
+                <ListScreen />
+              </Suspense>
             </TabsContent>
-            <TabsContent value="grades" className="w-full h-full">
-              <GradesScreen />
+            <TabsContent value="grades" className="mx-auto h-full w-full max-w-[1600px] px-1 sm:px-2">
+              <Suspense fallback={<ScreenFallback label="grades" />}>
+                <GradesScreen />
+              </Suspense>
             </TabsContent>
-            <TabsContent value="settings" className="w-full h-full">
-              <SettingsScreen />
+            <TabsContent value="settings" className="mx-auto h-full w-full max-w-[1200px] px-1 sm:px-2">
+              <Suspense fallback={<ScreenFallback label="settings" />}>
+                <SettingsScreen />
+              </Suspense>
             </TabsContent>
           </Tabs>
         )}
-        <Footer />
+        {onboardingCompleted && <Footer />}
       </ThemeProvider>
     </main>
+  );
+}
+
+function ScreenFallback({ label }: { label: string }) {
+  return (
+    <div className="m-4 flex min-h-64 items-center justify-center rounded-xl border bg-card text-sm text-muted-foreground">
+      Loading {label}…
+    </div>
   );
 }
 

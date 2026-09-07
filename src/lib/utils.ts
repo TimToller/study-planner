@@ -29,38 +29,40 @@ export const roundGrade = (value: number) => {
 
 export const average = (values: number[]) => values.reduce((acc, v) => acc + v, 0) / values.length;
 
-export const getGroupColor = (group: string) => {
-  const colorPalate = ["#64ade6", "#ddb0f4", "#929489", "#cdf3a9", "#90be6d", "#43aa8b", "#557c93", "#FADA7A"].map(
-    (c) => c + "60",
-  );
+export const getGroupAccentColor = (group: string) => {
+  const colorPalette = ["#3578d4", "#8255c7", "#64748b", "#65a30d", "#16806f", "#0785a3", "#4f46a5", "#b87416"];
   switch (group) {
     case "Bachelor Thesis":
     case "AI Basics and Practical Training":
     case "Propaedeutic":
-      return colorPalate[0];
+      return colorPalette[0];
     case "AI and Society":
     case "Theory":
-      return colorPalate[1];
+      return colorPalette[1];
     case "Computer Science":
     case "Hardware":
-      return colorPalate[2];
+      return colorPalette[2];
     case "Data Science":
     case "Software":
-      return colorPalate[3];
+      return colorPalette[3];
     case "Knowledge Representation and Reasoning":
     case "Systems":
-      return colorPalate[4];
+      return colorPalette[4];
     case "Machine Learning and Perception":
     case "Applications":
-      return colorPalate[5];
+      return colorPalette[5];
     case "Mathematics":
     case "Complementary Skills":
-      return colorPalate[6];
+      return colorPalette[6];
     case "Area of Specialization":
+      return "#ec4899"; // pink
     case "Free Elective":
-      return colorPalate[7];
+      return "#f59e0b"; // amber
   }
+  return colorPalette[2];
 };
+
+export const getGroupColor = (group: string) => `${getGroupAccentColor(group)}18`;
 
 export const downloadJSON = (data: object, filename = "data.json") => {
   const json = JSON.stringify(data, null, 2);

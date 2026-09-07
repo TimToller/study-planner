@@ -9,7 +9,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getDefaultUnmatchedVariant, KusssGradeResponse, parseKusssGrades } from "@/lib/kusss-import";
 import { Course, CourseGrading, CoursePlan, CustomCourse, Semester } from "@/types/courses";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactElement, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -24,7 +24,7 @@ interface KusssImportDialogProps {
     firstGradedSemester?: Semester;
   }) => void;
   triggerLabel?: string;
-  autoDetectStartingSemester?: boolean;
+  trigger?: ReactElement;
 }
 
 const isKusssGradeResponse = (value: unknown): value is KusssGradeResponse => {
@@ -56,7 +56,7 @@ export default function KusssImportDialog({
   startingSemester,
   onImport,
   triggerLabel = "Import from my.jku.at",
-  autoDetectStartingSemester = false,
+  trigger,
 }: KusssImportDialogProps) {
   const [kusssText, setKusssText] = useState("");
   const [open, setOpen] = useState(false);
@@ -79,7 +79,6 @@ export default function KusssImportDialog({
     const parsed = parseKusssGrades(kusssData, rawCourses, startingSemester, unmatchedVariants);
 
     if (
-      !autoDetectStartingSemester ||
       !parsed.firstGradedSemester ||
       (parsed.firstGradedSemester.year === startingSemester.year &&
         parsed.firstGradedSemester.type === startingSemester.type)
@@ -88,7 +87,7 @@ export default function KusssImportDialog({
     }
 
     return parseKusssGrades(kusssData, rawCourses, parsed.firstGradedSemester, unmatchedVariants);
-  }, [autoDetectStartingSemester, kusssData, rawCourses, startingSemester, unmatchedVariants]);
+  }, [kusssData, rawCourses, startingSemester, unmatchedVariants]);
 
   const sortedRows = useMemo(
     () =>
@@ -138,17 +137,9 @@ export default function KusssImportDialog({
     }
   };
 
-  useEffect(() => {
-    if (!open) return;
-
-    void tryReadClipboard({ manual: false });
-  }, [open]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary">{triggerLabel}</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger ?? <Button variant="secondary">{triggerLabel}</Button>}</DialogTrigger>
 
       <DialogContent className="max-w-4xl">
         <DialogHeader>

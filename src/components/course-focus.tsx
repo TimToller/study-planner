@@ -1,3 +1,4 @@
+import { getGroupAccentColor, round } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
 import { courseGroupsAtom } from "@/store/settings";
 import {
@@ -10,23 +11,18 @@ import {
   simulationGoalReachableAtom,
   simulationGradesAtom,
   simulationGradesAverageAtom,
+  type SimulationGoal,
 } from "@/store/simulation";
 import { useAtom } from "jotai";
-import { Check, Eye, EyeOff, Info, X } from "lucide-react";
+import { Check, CircleAlert, RotateCcw, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader } from "./ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
-function colorClasses(rounded: number | undefined) {
-  if (rounded === 1) return "border-emerald-500 bg-emerald-50";
-  if (rounded === 2) return "border-lime-500 bg-lime-50";
-  if (rounded === 3) return "border-yellow-500 bg-yellow-50";
-  if (rounded === 4) return "border-orange-500 bg-orange-50";
-  if (rounded !== undefined && !isNaN(rounded)) return "border-red-500 bg-red-50";
-  return "border-gray-300 bg-gray-50";
-}
+const formatAverage = (value: number | undefined) =>
+  value === undefined || Number.isNaN(value) ? "–" : round(value).toFixed(2).replace(/\.00$/, "");
 
 export default function CourseFocus() {
   const [simulationGoal, setSimulationGoal] = useAtom(simulationGoalAtom);
@@ -34,254 +30,275 @@ export default function CourseFocus() {
   const [simGrades] = useAtom(simulationGradesAtom);
   const [, setSimGrades] = useAtom(setSimulationGradesAtom);
   const [, resetSimGrades] = useAtom(resetSimulationGradesAtom);
-  const [, setLowerBoundSimGrades] = useAtom(setLowerBoundSimulationGradesAtom);
+  const [, calculateTargets] = useAtom(setLowerBoundSimulationGradesAtom);
   const [groups] = useAtom(courseGroupsAtom);
   const [stats] = useAtom(groupStatsAtom);
-  const [importance] = useAtom(courseImportanceAtom);
-
+  const [courseImpacts] = useAtom(courseImportanceAtom);
   const [goalReachable] = useAtom(simulationGoalReachableAtom);
-  const [simulationGradesAverage] = useAtom(simulationGradesAverageAtom);
-
-  const [showGraded, setShowGraded] = useState<Record<string, boolean>>({});
-  const toggleShowGraded = (g: string) => setShowGraded((s) => ({ ...s, [g]: !s[g] }));
+  const [simulationAverages] = useAtom(simulationGradesAverageAtom);
+  const [showRecordedCourses, setShowRecordedCourses] = useState<Record<string, boolean>>({});
 
   const groupView = useMemo(() => {
-    const realMap = new Map(grades.map((g) => [g.name, g.grade]));
-    const simMap = new Map(simGrades.map((g) => [g.name, g.grade]));
-    const importanceMap = new Map(importance.map((i) => [i.courseName, i]));
+    const realMap = new Map(grades.map((grade) => [grade.name, grade.grade]));
+    const simMap = new Map(simGrades.map((grade) => [grade.name, grade.grade]));
+    const courseImpactMap = new Map(courseImpacts.map((course) => [course.courseName, course]));
 
     return groups.map((group) => {
-      const groupStat = stats.find((s) => s.name === group.name);
-
-      const courses = group.courses.map((c) => {
-        const key = `${c.type} ${c.subject.name}`;
-        const real = realMap.get(key);
-        const simulated = simMap.get(key);
-        const important = importanceMap.get(key);
-
-        return {
-          key,
-          ects: c.ects,
-          realGrade: real,
-          simGrade: simulated,
-          importance: important?.importance ?? 0,
-          explanation: important?.explanation ?? "",
-        };
-      });
-
-      const gradedECTS = groupStat?.gradedECTS || 0;
-      const fullyGraded = gradedECTS >= groupStat!.totalECTS;
+      const groupStat = stats.find((candidate) => candidate.name === group.name);
+      const courses = group.courses
+        .map((course) => {
+          const key = `${course.type} ${course.subject.name}`;
+          const courseImpact = courseImpactMap.get(key);
+          return {
+            key,
+            ects: course.ects,
+            realGrade: realMap.get(key),
+            simGrade: simMap.get(key),
+            impact: courseImpact?.impact ?? "low",
+            structuralImpact: courseImpact?.structuralImpact ?? 0,
+          };
+        })
+        .sort((a, b) => {
+          if (a.realGrade !== undefined && b.realGrade === undefined) return 1;
+          if (a.realGrade === undefined && b.realGrade !== undefined) return -1;
+          const impactRank = { high: 3, medium: 2, low: 1 };
+          return (
+            impactRank[b.impact as keyof typeof impactRank] - impactRank[a.impact as keyof typeof impactRank] ||
+            b.structuralImpact - a.structuralImpact ||
+            a.key.localeCompare(b.key)
+          );
+        });
 
       return {
         name: group.name,
-        rounded: groupStat?.rounded,
         courses,
-        fullyGraded,
         average: groupStat?.average,
+        rounded: groupStat?.rounded,
         optimisticAverage: groupStat?.optimisticAverage,
+        allRecorded: courses.every((course) => course.realGrade !== undefined),
+        allTargetsSet: courses.every((course) => course.realGrade !== undefined || course.simGrade !== undefined),
       };
     });
-  }, [grades, simGrades, groups, stats, importance]);
+  }, [grades, groups, courseImpacts, simGrades, stats]);
 
-  const defaultOpen = groupView.filter((g) => !g.fullyGraded).map((g) => g.name);
-
-  const handleGradeChange = (courseName: string, value: string) => {
-    if (value === "None") {
-      setSimGrades({ name: courseName, grade: undefined });
-    } else {
-      setSimGrades({ name: courseName, grade: Number(value) as 1 | 2 | 3 | 4 | 5 });
-    }
-  };
-
-  if (grades.length === 0) {
-    return (
-      <div className="flex flex-col gap-6">
-        <header className="flex flex-col gap-2">
-          <h2 className="text-2xl font-bold">Course Focus</h2>
-          <p>
-            Start filling in your grades in the List section to use the Course Focus tool. It will help you simulate
-            which grades you would need to reach your goals and which courses to focus on.
-          </p>
-        </header>
-      </div>
-    );
-  }
-
-  const SimulationGrades = (
-    <>
-      Given your current simulation you would have:
-      <br />
-      <b>Course average:</b> {simulationGradesAverage.courseAverage?.toPrecision(3)}
-      <br />
-      <b>Group average:</b> {simulationGradesAverage.groupAverage?.toPrecision(3)}
-    </>
-  );
+  const setGrade = (courseName: string, value: string) =>
+    setSimGrades({
+      name: courseName,
+      grade: value === "none" ? undefined : (Number(value) as 1 | 2 | 3 | 4 | 5),
+    });
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h2 className="text-2xl font-bold">Course Focus</h2>
-        <p>
-          Use the planner below to "Simulate" which grades you would need to reach your goals and which courses to focus
-          on.
+    <Card className="shadow-none" id="course-focus">
+      <CardHeader className="border-b p-5 sm:p-6">
+        <h2 className="text-xl font-bold text-foreground">Course Focus</h2>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+          Calculate workable target grades, then adjust individual courses to test another outcome.
         </p>
-      </header>
+      </CardHeader>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Usage</AlertTitle>
-        <AlertDescription>
-          Adjust hypothetical grades in the dropdowns. Collapsible headers are color-coded by their current rounded
-          average. You will see both the average of each group and the group upper-bound, i.e. the average if all
-          remaining courses are graded with a 1.
-          <br />
-          <br />
-          Grade rounding uses half-down ties: values ending in .5 round down (e.g. 1.5 -&gt; 1).
-          <br />
-          <br />
-          The Free Elective group does not influence the Passed with Distinction check, but it does influence the
-          overall course average.
-          <br />
-          <br />
-          The ⚡ Emojis are an indicator as to which courses are important for your goal. The more ⚡ Emojis, the more
-          important the course is for your goal. Courses with lots of ECTS, in groups with few total ECTS have the
-          largest impact.
-          <br />
-          <br />
-          Setting the <b>Lower bound grades</b> essentially tries to fill the "un-simulated" grades in such a way, that
-          you reach your goal with the lowest possible grades.
-          <br />
-          <br />
-          Use this tool with caution and only as a rough guide,{" "}
-          <b>I can not guarantee that every calculation was done correctly</b>. If you have found a bug or know a way
-          how to improve this, please create a PR
-          <a href="https://github.com/TimToller/study-planner/compare" className="underline ml-1">
-            here
-          </a>
-          .
-        </AlertDescription>
-      </Alert>
-
-      {/* Goal picker */}
-      <div className="flex flex-row gap-4 items-center">
-        <h3 className="text-lg">Goal:</h3>
-        <Select onValueChange={(g) => setSimulationGoal(g as SimulationGoal)} value={simulationGoal}>
-          <SelectTrigger className="w-56">
-            <SelectValue placeholder="Select a goal" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="allA">All groups Sehr gut</SelectItem>
-              <SelectItem value="passedWithDistinction">Passed with Distinction</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" size="sm" onClick={() => setLowerBoundSimGrades()}>
-          Set Lower Bound Grades
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => resetSimGrades()}>
-          Reset Simulation
-        </Button>
+      <div className="z-30 grid gap-4 border-b bg-card/95 p-4 backdrop-blur md:sticky md:top-16 lg:grid-cols-[minmax(220px,300px)_auto_1fr_auto] lg:items-end">
+        <label className="space-y-1.5 text-sm font-bold text-foreground">
+          Goal
+          <Select onValueChange={(goal) => setSimulationGoal(goal as SimulationGoal)} value={simulationGoal}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="passedWithDistinction">Graduate with distinction</SelectItem>
+                <SelectItem value="allA">Every group rounds to 1</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => calculateTargets()}>
+            <Sparkles className="h-4 w-4" /> Calculate targets
+          </Button>
+          <Button variant="outline" onClick={() => resetSimGrades()} disabled={simGrades.length === 0}>
+            <RotateCcw className="h-4 w-4" /> Reset
+          </Button>
+        </div>
+        <div className="flex gap-6 lg:justify-end">
+          <SummaryValue label="Course average" value={formatAverage(simulationAverages.courseAverage)} />
+          <SummaryValue label="Group average" value={formatAverage(simulationAverages.groupAverage)} />
+        </div>
+        <div className="lg:self-center">
+          <GoalStatus reachable={goalReachable.reachable} />
+        </div>
       </div>
 
-      {goalReachable.reachable ? (
-        <Alert className="border-emerald-500/50 text-emerald-500 ">
-          <Check className="h-4 w-4 !text-emerald-500" />
-          <AlertTitle>Goal achievable!</AlertTitle>
-          <AlertDescription>
-            Great! You're on track to achieve your goal. Find out which grades will help you the most.
-            <br />
-            {SimulationGrades}
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert className="border-destructive/50 text-destructive">
-          <X className="h-4 w-4 !text-destructive" />
-          <AlertTitle>Goal not achievable!</AlertTitle>
-          <AlertDescription>
-            Unfortunately, you won't be able to achieve your goal. {goalReachable.reasons.join(" ")}
-            <br />
-            {SimulationGrades}
-          </AlertDescription>
-        </Alert>
+      {!goalReachable.reachable && goalReachable.reasons.length > 0 && (
+        <div className="border-b border-destructive/30 bg-destructive/5 px-5 py-4 text-sm text-foreground sm:px-6">
+          <p className="font-bold text-destructive">What prevents this goal</p>
+          <ul className="mt-1.5 space-y-1">
+            {goalReachable.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      {/* Groups accordion */}
-      <Accordion type="multiple" defaultValue={defaultOpen} className="space-y-2">
-        {groupView.map((g) => (
-          <AccordionItem key={g.name} value={g.name} className={`border-2 rounded-md ${colorClasses(g.rounded)}`}>
-            <AccordionTrigger className="px-4 py-2 flex items-center gap-2">
-              <span className="font-semibold flex-1">{g.name}</span>
-              {g.rounded !== undefined && !isNaN(g.rounded) && (
-                <>
-                  <span className="text-sm font-mono">Ø {g.average?.toPrecision(3)}</span>
-                  {g.average !== g.optimisticAverage && (
-                    <span className="text-sm font-mono">≥ {g.optimisticAverage?.toPrecision(3)}</span>
-                  )}
-                </>
-              )}
-              {g.fullyGraded && <span className="text-xs text-gray-500">Fully graded</span>}
-            </AccordionTrigger>
-            <AccordionContent className="bg-white px-4 py-3 space-y-4">
-              {/* Toggle graded‑courses visibility */}
-              {g.courses.some((c) => c.realGrade !== undefined) && (
-                <Button size="sm" variant="outline" onClick={() => toggleShowGraded(g.name)} className="mb-2">
-                  {showGraded[g.name] ? (
-                    <span className="flex items-center gap-1">
-                      <EyeOff className="h-4 w-4" /> Hide graded courses
+      <CardContent className="p-0">
+        <div className="border-b px-5 py-3 text-sm text-muted-foreground sm:px-6">
+          Suggested grades are estimates. Recorded grades stay fixed and appear muted for context.
+        </div>
+        <Accordion
+          type="multiple"
+          defaultValue={groupView
+            .filter((group) => group.courses.some((course) => course.realGrade === undefined))
+            .map((group) => group.name)}
+        >
+          {groupView.map((group) => {
+            const accent = getGroupAccentColor(group.name);
+            const recordedCourses = group.courses.filter((course) => course.realGrade !== undefined);
+            const visibleCourses = showRecordedCourses[group.name]
+              ? group.courses
+              : group.courses.filter((course) => course.realGrade === undefined);
+            return (
+              <AccordionItem key={group.name} value={group.name} className="border-b last:border-b-0">
+                <AccordionTrigger className="min-w-0 max-w-full gap-4 overflow-hidden px-5 py-4 hover:no-underline sm:px-6">
+                  <span className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                    <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold text-foreground">{group.name}</span>
+                      <span className="mt-0.5 block text-sm font-normal text-muted-foreground">
+                        {group.allRecorded
+                          ? "All grades recorded"
+                          : group.allTargetsSet
+                            ? "All targets set"
+                            : `${group.courses.filter((course) => course.realGrade === undefined).length} targets open`}
+                      </span>
                     </span>
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" /> Show graded courses
+                  </span>
+                  <span className="flex shrink-0 items-center gap-3">
+                    <RoundedGroupGrade grade={group.rounded} />
+                    <span className="hidden text-right text-sm sm:block">
+                      <span className="block font-bold text-foreground">Average {formatAverage(group.average)}</span>
+                      <span className="text-muted-foreground">Best case {formatAverage(group.optimisticAverage)}</span>
                     </span>
-                  )}
-                </Button>
-              )}
-
-              <div className="flex flex-col gap-3">
-                {g.courses
-                  .filter((c) => c.realGrade === undefined || showGraded[g.name])
-                  .sort((a, b) => a.key.localeCompare(b.key))
-                  .map((c) => (
-                    <div key={c.key} className="flex flex-row gap-4 items-start border p-3 rounded-md">
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          {c.key}
-                          <span className="ml-2 text-xs text-gray-500">{c.ects} ECTS</span>
-                          {c.realGrade === undefined && (
-                            <span className="ml-2 text-xs text-gray-500">
-                              {"⚡".repeat(Math.ceil(c.importance * 5))}
-                            </span>
-                          )}
-                        </p>
-                        {c.explanation && <p className="text-xs text-gray-600 mt-1">{c.explanation}</p>}
-                      </div>
-                      {/* Grade column */}
-                      {c.realGrade !== undefined ? (
-                        <span className="text-sm font-mono">{c.realGrade}</span>
-                      ) : (
-                        <Select value={c.simGrade?.toString() ?? ""} onValueChange={(v) => handleGradeChange(c.key, v)}>
-                          <SelectTrigger className="w-20">
-                            <SelectValue placeholder="-" />
-                          </SelectTrigger>
-                          <SelectContent side="top">
-                            <SelectGroup>
-                              {["None", "1", "2", "3", "4", "5"].map((g) => (
-                                <SelectItem key={g} value={g}>
-                                  {g}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      )}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-4 sm:px-6">
+                  {recordedCourses.length > 0 && (
+                    <div className="mb-3 flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setShowRecordedCourses((current) => ({ ...current, [group.name]: !current[group.name] }))
+                        }
+                      >
+                        {showRecordedCourses[group.name] ? "Hide" : "Show"} {recordedCourses.length} recorded{" "}
+                        {recordedCourses.length === 1 ? "course" : "courses"}
+                      </Button>
                     </div>
-                  ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+                  )}
+                  <div className="overflow-hidden rounded-lg border">
+                    {visibleCourses.map((course) => {
+                      const fixed = course.realGrade !== undefined;
+                      const impactLabel = course.impact === "high" ? "High impact" : "Medium impact";
+                      return (
+                        <div
+                          key={course.key}
+                          className={`grid gap-3 border-b px-3 py-3 last:border-b-0 sm:grid-cols-[1fr_auto] sm:items-center ${
+                            fixed ? "bg-muted/35 opacity-60" : "bg-card"
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-bold text-foreground">{course.key}</p>
+                              <span className="text-sm text-muted-foreground">{course.ects} ECTS</span>
+                              {!fixed && course.impact !== "low" && (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                                  {impactLabel}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {fixed ? (
+                            <span className="rounded-md border bg-background px-3 py-2 text-sm font-bold tabular-nums">
+                              Fixed: {course.realGrade}
+                            </span>
+                          ) : (
+                            <label className="flex items-center justify-between gap-3 text-sm font-bold text-muted-foreground sm:justify-end">
+                              Target grade
+                              <Select
+                                value={course.simGrade?.toString() ?? ""}
+                                onValueChange={(value) => setGrade(course.key, value)}
+                              >
+                                <SelectTrigger className="w-24 bg-background">
+                                  <SelectValue placeholder="–" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">None</SelectItem>
+                                  {[1, 2, 3, 4, 5].map((grade) => (
+                                    <SelectItem key={grade} value={grade.toString()}>
+                                      {grade}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </label>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RoundedGroupGrade({ grade }: { grade: number | undefined }) {
+  const normalizedGrade = grade === undefined || Number.isNaN(grade) ? undefined : grade;
+  const tone =
+    normalizedGrade === 1
+      ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+      : normalizedGrade === 2
+        ? "border-lime-500/35 bg-lime-500/10 text-lime-700 dark:text-lime-300"
+        : normalizedGrade === 3
+          ? "border-amber-500/35 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+          : normalizedGrade === 4
+            ? "border-orange-500/35 bg-orange-500/10 text-orange-700 dark:text-orange-300"
+            : normalizedGrade === 5
+              ? "border-red-500/35 bg-red-500/10 text-red-700 dark:text-red-300"
+              : "border-muted-foreground/25 bg-muted text-muted-foreground";
+
+  return (
+    <span
+      className={`inline-flex min-w-16 items-center justify-center gap-1.5 rounded-lg border px-2.5 py-1.5 ${tone}`}
+      aria-label={`Rounded group grade: ${normalizedGrade ?? "not available"}`}
+    >
+      <span className="text-[10px] font-bold leading-none">Grade</span>
+      <span className="text-xl font-bold leading-none tabular-nums">{normalizedGrade ?? "–"}</span>
+    </span>
+  );
+}
+
+function GoalStatus({ reachable }: { reachable: boolean }) {
+  return (
+    <div
+      className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold ${
+        reachable ? "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" : "bg-destructive/10 text-destructive"
+      }`}
+    >
+      {reachable ? <Check className="h-4 w-4" /> : <CircleAlert className="h-4 w-4" />}
+      {reachable ? "Goal is achievable" : "Goal is not achievable"}
+    </div>
+  );
+}
+
+function SummaryValue({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-lg font-bold tabular-nums text-foreground">{value}</p>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatSemester } from "@/lib/semester";
-import { cn, getGroupColor } from "@/lib/utils";
+import { cn, getGroupAccentColor, getGroupColor } from "@/lib/utils";
 import { customCoursesAtom } from "@/store/customCourses";
 import { personalCoursesAtom, planningInfoAtom, setPlanningAtom } from "@/store/planning";
 import { startingSemesterAtom } from "@/store/settings";
@@ -20,7 +20,16 @@ import {
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAtom } from "jotai";
-import { X } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  GripVertical,
+  Lightbulb,
+  Search,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -31,11 +40,11 @@ function DragItem({ course }: { course: Course }) {
   if (!course) return null;
   return (
     <div
-      className="p-2 rounded-md shadow-lg cursor-grabbing text-foreground"
-      style={{ backgroundColor: getGroupColor(course.group) }}
+      className="w-72 rounded-lg border border-l-4 bg-card p-3 text-foreground shadow-xl"
+      style={{ borderLeftColor: getGroupAccentColor(course.group) }}
     >
-      <div className="font-medium">{course.name}</div>
-      <div className="text-sm">
+      <div className="font-bold">{course.name}</div>
+      <div className="mt-1 text-sm text-muted-foreground">
         {[
           `${course.ects} ECTS`,
           course.available,
@@ -54,7 +63,10 @@ function DroppableContainer({ id, children }: { id: string; children: React.Reac
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[150px] h-full space-y-2 p-2 bg-primary-foreground rounded-md ${isOver ? "!bg-secondary" : ""} transition-colors`}
+      className={cn(
+        "h-full min-h-[150px] space-y-2 rounded-lg border border-dashed bg-muted/25 p-2 transition-colors",
+        isOver && "border-primary bg-primary/5",
+      )}
     >
       {children}
     </div>
@@ -88,7 +100,19 @@ function SortableItem({
     transition,
     opacity: isDragging ? 0 : 1,
     backgroundColor: getGroupColor(course.group),
+    borderLeftColor: getGroupAccentColor(course.group),
   };
+
+  const InfoIcon =
+    info === "error" ? AlertCircle : info === "warning" ? AlertTriangle : info === "recommendation" ? Lightbulb : null;
+  const infoLabel =
+    info === "error"
+      ? "Plan issue"
+      : info === "warning"
+        ? "Plan warning"
+        : info === "recommendation"
+          ? "Recommendation"
+          : null;
 
   return (
     <div
@@ -97,32 +121,61 @@ function SortableItem({
       {...attributes}
       {...listeners}
       className={cn(
-        `p-2 rounded-md shadow-sm cursor-move transition-colors text-foreground`,
-        info && "border-4 border-gray-400",
-        info === "warning" && "border-yellow-400",
-        info === "error" && "border-red-400",
+        "rounded-lg border border-l-4 p-3 text-foreground shadow-sm transition-[opacity,box-shadow] hover:shadow-md",
+        "cursor-grab active:cursor-grabbing",
+        info === "warning" && "ring-1 ring-amber-500/50",
+        info === "error" && "ring-2 ring-destructive/60",
       )}
     >
-      <div className="relative">
-        <div>
-          <div className="font-medium">{course.name}</div>
-          <div className="text-sm">
-            {[
-              `${course.ects} ECTS`,
-              course.available,
-              course.grade !== undefined && `Grade: ${course.grade}`,
-              VARIANT_MAP.includes(course.group) && course.group,
-            ]
-              .filter((e) => e !== false && e !== undefined)
-              .join(" | ")}
+      <div className="relative flex gap-2.5">
+        <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/70" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="font-bold leading-snug">{course.name}</div>
+            {InfoIcon && (
+              <span
+                title={infoLabel ?? undefined}
+                aria-label={infoLabel ?? undefined}
+                className={cn(
+                  "shrink-0",
+                  info === "error" && "text-destructive",
+                  info === "warning" && "text-amber-700 dark:text-amber-300",
+                  info === "recommendation" && "text-primary",
+                )}
+              >
+                <InfoIcon className="h-4 w-4" />
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="rounded-md bg-background/75 px-1.5 py-0.5 font-bold tabular-nums">{course.ects} ECTS</span>
+            {course.available && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-background/75 px-1.5 py-0.5">
+                <CalendarDays className="h-3 w-3" /> {course.available}
+              </span>
+            )}
+            {course.grade !== undefined && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md bg-background/75 px-1.5 py-0.5 font-bold",
+                  course.grade <= 4 ? "text-[hsl(var(--success))]" : "text-destructive",
+                )}
+              >
+                {course.grade <= 4 && <CheckCircle2 className="h-3 w-3" />} Grade {course.grade}
+              </span>
+            )}
+            {VARIANT_MAP.includes(course.group) && (
+              <span className="rounded-md bg-background/75 px-1.5 py-0.5">{course.group}</span>
+            )}
           </div>
         </div>
         {VARIANT_MAP.includes(course.group) && (
           <Button
             size={"icon"}
             variant={"destructive"}
-            className="w-4 h-4 absolute -top-2 -right-2"
+            className="absolute -right-2 -top-2 h-6 w-6"
             onClick={() => removeCustomCourse(course.id)}
+            aria-label={`Remove ${course.name}`}
           >
             <X />
           </Button>
@@ -314,24 +367,27 @@ export default function DraggableBoard() {
       }}
       onDragCancel={() => setActiveId(null)}
     >
-      <div className="flex flex-col lg:flex-row h-full gap-4 p-2 sm:p-4 relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+      <div className="relative flex h-full flex-col gap-4 p-2 sm:p-4 lg:flex-row">
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {Object.values(columns)
             .filter((col) => !col.id.startsWith("search"))
             .sort((a, b) => parseInt(a.id.replace("semester", ""), 10) - parseInt(b.id.replace("semester", ""), 10))
             .map((column) => {
               const totalEcts = column.courses.reduce((sum, course) => sum + course.ects, 0);
               return (
-                <Card key={column.id} className="shadow-md flex flex-col">
-                  <CardHeader className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold">
-                      {column.title}
-                      {totalEcts > 0 && (
-                        <span className="ml-2 text-sm text-secondary-foreground">(ECTS: {totalEcts})</span>
-                      )}
-                    </CardTitle>
+                <Card key={column.id} className="flex flex-col shadow-none">
+                  <CardHeader className="sticky top-16 z-20 rounded-t-xl border-b bg-card p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <CardTitle className="text-base leading-snug">{column.title}</CardTitle>
+                      <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{totalEcts} ECTS</span>
+                    </div>
                   </CardHeader>
-                  <CardContent className="h-full">
+                  <CardContent className="h-full p-3">
+                    {column.id.startsWith("semester") && (
+                      <div className="mb-3">
+                        <WorkloadMeter ects={totalEcts} />
+                      </div>
+                    )}
                     <DroppableContainer id={column.id}>
                       <SortableContext
                         items={column.courses.map((course) => course.id)}
@@ -352,16 +408,22 @@ export default function DraggableBoard() {
               );
             })}
         </div>
-        <div className="h-[60vh] lg:h-[95vh] rounded-md p-2 border-2 shadow-md w-full lg:w-auto lg:sticky lg:top-2 lg:bottom-2 lg:min-w-[300px]">
-          <ScrollArea className="h-full p-2">
-            <h2 className="text-xl font-semibold mb-3 text-foreground">Available Courses</h2>
-            <Input
-              value={availableCourseSearch}
-              onChange={(event) => setAvailableCourseSearch(event.target.value)}
-              placeholder="Search available courses..."
-              aria-label="Search available courses"
-              className="mx-1 mb-3 w-[calc(100%-0.5rem)]"
-            />
+        <aside className="h-[60vh] w-full rounded-xl border bg-card p-3 lg:sticky lg:top-32 lg:h-[calc(100vh-9rem)] lg:min-w-[310px] lg:max-w-[340px]">
+          <ScrollArea className="h-full pr-2">
+            <div className="mb-3">
+              <h2 className="text-lg font-bold text-foreground">Available courses</h2>
+              <p className="text-sm text-muted-foreground">Drag a course into a semester to add it to your plan.</p>
+            </div>
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={availableCourseSearch}
+                onChange={(event) => setAvailableCourseSearch(event.target.value)}
+                placeholder="Search courses..."
+                aria-label="Search available courses"
+                className="pl-9"
+              />
+            </div>
             <DroppableContainer id="search">
               <SortableContext
                 items={visibleAvailableCourses.map((course) => course.id)}
@@ -377,9 +439,38 @@ export default function DraggableBoard() {
             </DroppableContainer>
             <CustomCourseForm />
           </ScrollArea>
-        </div>
+        </aside>
       </div>
       <DragOverlay>{activeId ? <DragItem course={findCourseById(activeId)!} /> : null}</DragOverlay>
     </DndContext>
+  );
+}
+
+function WorkloadMeter({ ects }: { ects: number }) {
+  const percentage = Math.min(100, (ects / 40) * 100);
+  const state = ects > 40 ? "Overloaded" : ects > 33 ? "High" : ects >= 27 ? "Balanced" : ects > 0 ? "Light" : "Empty";
+  const color =
+    ects > 40
+      ? "bg-destructive"
+      : ects > 33
+        ? "bg-amber-500"
+        : ects >= 27
+          ? "bg-[hsl(var(--success))]"
+          : "bg-primary/65";
+
+  return (
+    <div>
+      <div
+        className="relative h-2 overflow-hidden rounded-full bg-muted"
+        aria-label={`${ects} ECTS, ${state} workload`}
+      >
+        <div className={cn("h-full rounded-full", color)} style={{ width: `${percentage}%` }} />
+        <span className="absolute inset-y-0 left-3/4 w-px bg-foreground/50" title="30 ECTS target" />
+      </div>
+      <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>{state}</span>
+        <span>30 ECTS target</span>
+      </div>
+    </div>
   );
 }

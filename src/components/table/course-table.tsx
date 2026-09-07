@@ -1,6 +1,6 @@
 import { useDebounce } from "@/hooks/useDebounce";
 import { getCourseStatus } from "@/lib/semester";
-import { getGroupColor } from "@/lib/utils";
+import { getGroupAccentColor } from "@/lib/utils";
 import { setGradesAtom } from "@/store/grades";
 import { personalCoursesAtom, setPlanningAtom } from "@/store/planning";
 import {
@@ -13,14 +13,19 @@ import {
 } from "@/store/tableOptions";
 import { Course } from "@/types/courses";
 import { useAtom } from "jotai";
-import { Filter } from "lucide-react";
+import { ArrowDown, ArrowUp, Filter, Search, X } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import CourseStatusBadge from "../course-status-badge";
 import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import GradeSelect from "./grade-select";
 import SemesterSelect from "./semester-select";
@@ -99,101 +104,127 @@ export default function CourseTable() {
     return filtered;
   }, [courses, debounceSearchQuery, selectedTypes, selectedGroups, selectedGrades, sortField, sortOrder]);
 
-  const activeFilterCount = selectedTypes.length + selectedGroups.length;
+  const activeFilterCount = selectedTypes.length + selectedGroups.length + selectedGrades.length;
+  const clearFilters = () => {
+    setSelectedTypes([]);
+    setSelectedGroups([]);
+    setSelectedGrades([]);
+  };
 
   return (
-    <div className="p-2 sm:p-4 flex flex-col">
-      <div className="mb-4 flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between w-full">
-        <Input
-          type="text"
-          placeholder="Search courses..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full sm:max-w-xs"
-        />
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="relative w-full sm:w-auto">
-              <Filter className="w-4 h-4" />
-              {activeFilterCount > 0 && (
-                <span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 rounded-full bg-red-500 text-white px-2 text-xs">
-                  {activeFilterCount}
-                </span>
-              )}
-              <span className="ml-2">Filters</span>
+    <div className="flex flex-col p-2 sm:p-4">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by course, group, semester, or grade..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {activeFilterCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X /> Clear filters
             </Button>
-          </SheetTrigger>
-          <SheetContent className="w-64">
-            <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-            </SheetHeader>
-            <div className="p-4 space-y-4 text-foreground">
-              <div className="gap-2 flex flex-col">
-                <h4 className="text-sm font-semibold">Grade</h4>
-                {[1, 2, 3, 4, 5, undefined].map((type) => (
-                  <div key={type} className="flex items-center gap-2 flex-row">
-                    <Checkbox
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="relative flex-1 sm:flex-none">
+                <Filter className="h-4 w-4" />
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+                <span className="ml-2">Filters</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="max-h-[min(70vh,36rem)] w-[min(92vw,42rem)] overflow-y-auto p-0"
+            >
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <div>
+                  <p className="font-bold">Filter courses</p>
+                  <p className="text-sm text-muted-foreground">Selections update the list immediately.</p>
+                </div>
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    Clear all
+                  </Button>
+                )}
+              </div>
+              <div className="grid gap-0 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                <div className="p-3">
+                  <DropdownMenuLabel>Grade</DropdownMenuLabel>
+                  {[1, 2, 3, 4, 5, undefined].map((type) => (
+                    <DropdownMenuCheckboxItem
+                      key={`grade-${type ?? "ungraded"}`}
                       checked={selectedGrades.includes(type)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedGrades((prev) => [...prev, type]);
-                        } else {
-                          setSelectedGrades((prev) => prev.filter((t) => t !== type));
-                        }
-                      }}
-                      id="{type}"
-                    />
-                    <Label htmlFor="{type}" className="">
-                      {type === undefined ? "ungraded" : type}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              <div className="gap-2 flex flex-col">
-                <h4 className="text-sm font-semibold">Course Type</h4>
-                {["UE", "VL", "PR", "SE", "KV"].map((type) => (
-                  <div key={type} className="flex items-center gap-2 flex-row">
-                    <Checkbox
+                      onSelect={(event) => event.preventDefault()}
+                      onCheckedChange={(checked) =>
+                        setSelectedGrades((current) =>
+                          checked ? [...current, type] : current.filter((grade) => grade !== type),
+                        )
+                      }
+                    >
+                      {type === undefined ? "Not graded" : `Grade ${type}`}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </div>
+                <div className="p-3">
+                  <DropdownMenuLabel>Course type</DropdownMenuLabel>
+                  {["UE", "VL", "PR", "SE", "KV"].map((type) => (
+                    <DropdownMenuCheckboxItem
+                      key={type}
                       checked={selectedTypes.includes(type)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedTypes((prev) => [...prev, type]);
-                        } else {
-                          setSelectedTypes((prev) => prev.filter((t) => t !== type));
-                        }
-                      }}
-                      id={type}
-                    />
-                    <Label htmlFor={type} className="">
+                      onSelect={(event) => event.preventDefault()}
+                      onCheckedChange={(checked) =>
+                        setSelectedTypes((current) =>
+                          checked ? [...current, type] : current.filter((selected) => selected !== type),
+                        )
+                      }
+                    >
                       {type}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              <div className="gap-2 flex flex-col">
-                <h4 className="mb-2 text-sm font-semibold">Course Group</h4>
-                {Array.from(new Set(courses.map((course) => course.group))).map((group) => (
-                  <div key={group} className="flex items-center gap-2 flex-row">
-                    <Checkbox
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </div>
+                <div className="p-3">
+                  <DropdownMenuLabel>Curriculum group</DropdownMenuLabel>
+                  {Array.from(new Set(courses.map((course) => course.group))).map((group) => (
+                    <DropdownMenuCheckboxItem
+                      key={group}
                       checked={selectedGroups.includes(group)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedGroups((prev) => [...prev, group]);
-                        } else {
-                          setSelectedGroups((prev) => prev.filter((g) => g !== group));
-                        }
-                      }}
-                      id={group}
-                    />
-                    <Label htmlFor={group}>{group}</Label>
-                  </div>
-                ))}
+                      onSelect={(event) => event.preventDefault()}
+                      onCheckedChange={(checked) =>
+                        setSelectedGroups((current) =>
+                          checked ? [...current, group] : current.filter((selected) => selected !== group),
+                        )
+                      }
+                    >
+                      <span className="truncate">{group}</span>
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+              <DropdownMenuSeparator className="m-0" />
+              <p className="px-4 py-2.5 text-sm text-muted-foreground">{filteredCourses.length} courses match</p>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <TableGuts filteredCourses={filteredCourses} />
+      <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Showing <strong className="text-foreground">{filteredCourses.length}</strong> of {courses.length} courses
+        </span>
+        <span>Change semesters and grades directly below.</span>
+      </div>
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <TableGuts filteredCourses={filteredCourses} />
+      </div>
     </div>
   );
 }
@@ -211,42 +242,109 @@ function TableGuts({ filteredCourses }: { filteredCourses: Course[] }) {
     }
   };
 
+  const sortIndicator = (field: typeof sortField) => {
+    if (sortField !== field) return null;
+    return sortOrder === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
+  };
+
   return (
-    <Table className="w-full">
-      <TableHeader>
-        <TableRow>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
-            Status {sortField === "status" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("group")}>
-            Group {sortField === "group" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("type")}>
-            Type {sortField === "type" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
-            Name {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("ects")}>
-            ECTS {sortField === "ects" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("available")}>
-            Available {sortField === "available" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("plannedSemester")}>
-            Semester {sortField === "plannedSemester" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-          <TableHead className="cursor-pointer select-none" onClick={() => handleSort("grade")}>
-            Grade {sortField === "grade" && (sortOrder === "asc" ? "↑" : "↓")}
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {filteredCourses.map((course) => (
-          <MemoTableRow key={course.id} {...course} />
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <div className="divide-y md:hidden">
+        {filteredCourses.length === 0 ? (
+          <p className="px-4 py-12 text-center text-sm text-muted-foreground">
+            No courses match the current search and filters.
+          </p>
+        ) : (
+          filteredCourses.map((course) => <MobileCourseCard key={course.id} course={course} />)
+        )}
+      </div>
+      <div className="hidden md:block">
+        <Table className="w-full">
+          <TableHeader className="bg-muted/55">
+            <TableRow>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
+                <span className="flex items-center gap-1">Status {sortIndicator("status")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("group")}>
+                <span className="flex items-center gap-1">Group {sortIndicator("group")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("type")}>
+                <span className="flex items-center gap-1">Type {sortIndicator("type")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
+                <span className="flex items-center gap-1">Course {sortIndicator("name")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("ects")}>
+                <span className="flex items-center gap-1">ECTS {sortIndicator("ects")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("available")}>
+                <span className="flex items-center gap-1">Offered {sortIndicator("available")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("plannedSemester")}>
+                <span className="flex items-center gap-1">Semester {sortIndicator("plannedSemester")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("grade")}>
+                <span className="flex items-center gap-1">Grade {sortIndicator("grade")}</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCourses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                  No courses match the current search and filters.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCourses.map((course) => <MemoTableRow key={course.id} {...course} />)
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
+
+function MobileCourseCard({ course }: { course: Course }) {
+  const [, updateGrade] = useAtom(setGradesAtom);
+  const [, updatePlanning] = useAtom(setPlanningAtom);
+
+  return (
+    <article className="space-y-3 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-bold leading-snug">{course.name}</h3>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: getGroupAccentColor(course.group) }}
+            />
+            <span className="truncate">{course.group}</span>
+          </p>
+        </div>
+        <CourseStatusBadge grade={course.grade} plannedSemester={course.plannedSemester} />
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="rounded-md bg-muted px-1.5 py-0.5 font-bold">{course.type}</span>
+        <span className="font-bold tabular-nums">{course.ects} ECTS</span>
+        <span className="text-muted-foreground">
+          {course.available ? `Offered ${course.available}` : "Offered any term"}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="space-y-1.5 text-sm font-bold text-muted-foreground">
+          Semester
+          <SemesterSelect
+            semester={course.plannedSemester}
+            onSemesterChange={(plannedSemester) => updatePlanning({ name: course.name, plannedSemester })}
+          />
+        </label>
+        <label className="space-y-1.5 text-sm font-bold text-muted-foreground">
+          Grade
+          <GradeSelect grade={course.grade} onGradeChange={(grade) => updateGrade({ name: course.name, grade })} />
+        </label>
+      </div>
+    </article>
   );
 }
 
@@ -283,11 +381,24 @@ function TableRowElement({
       <TableCell>
         <CourseStatusBadge grade={grade} plannedSemester={plannedSemester} />
       </TableCell>
-      <TableCell style={{ backgroundColor: getGroupColor(group) }}>{group}</TableCell>
-      <TableCell>{type}</TableCell>
-      <TableCell>{name}</TableCell>
-      <TableCell>{ects}</TableCell>
-      <TableCell>{available || "N/A"}</TableCell>
+      <TableCell>
+        <span className="flex min-w-36 items-center gap-2">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: getGroupAccentColor(group) }} />
+          {group}
+        </span>
+      </TableCell>
+      <TableCell>
+        <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs font-bold">{type}</span>
+      </TableCell>
+      <TableCell className="min-w-56 font-bold">{name}</TableCell>
+      <TableCell className="font-bold tabular-nums">{ects}</TableCell>
+      <TableCell>
+        {available ? (
+          <span className="rounded-md border px-1.5 py-0.5 text-xs font-bold">{available}</span>
+        ) : (
+          <span className="text-muted-foreground">Any</span>
+        )}
+      </TableCell>
       <TableCell>
         <SemesterSelect semester={plannedSemester} onSemesterChange={handleSemesterChange} />
       </TableCell>

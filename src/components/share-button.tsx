@@ -12,7 +12,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-type ShareButtonProps = Pick<ButtonProps, "className" | "size" | "variant">;
+type ShareButtonProps = Pick<ButtonProps, "className" | "size" | "variant"> & { iconOnly?: boolean };
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
@@ -23,7 +23,12 @@ const downloadBlob = (blob: Blob, filename: string) => {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
-export default function ShareButton({ className, size = "default", variant = "default" }: ShareButtonProps) {
+export default function ShareButton({
+  className,
+  iconOnly = false,
+  size = "default",
+  variant = "default",
+}: ShareButtonProps) {
   const exportData = useAtomValue(exportAtom);
   const courses = useAtomValue(personalCoursesAtom);
   const startingSemester = useAtomValue(startingSemesterAtom);
@@ -117,7 +122,8 @@ export default function ShareButton({ className, size = "default", variant = "de
     >
       <DialogTrigger asChild>
         <Button className={className} size={size} variant={variant}>
-          <Share2 /> Share plan
+          <Share2 /> {!iconOnly && "Share"}
+          <span className="sr-only">Share</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">

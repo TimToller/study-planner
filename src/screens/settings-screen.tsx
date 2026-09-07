@@ -1,241 +1,223 @@
-import KusssImportDialog from "@/components/kusss-import-dialog";
-import { ModeToggle } from "@/components/mode-toggle";
-import { ProgramToggle } from "@/components/program-toggle.tsx";
+import KusssImportButton from "@/components/kusss-import-button";
+import { ProgramToggle } from "@/components/program-toggle";
 import ShareButton from "@/components/share-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn, downloadJSON } from "@/lib/utils";
+import { downloadJSON } from "@/lib/utils";
 import { gradesAtom } from "@/store/grades";
-import { customCoursesAtom } from "@/store/customCourses";
 import { planningAtom } from "@/store/planning";
 import { exportAtom, programAtom, rawCoursesAtom, startingSemesterAtom } from "@/store/settings";
 import { SemesterType } from "@/types/courses";
 import { useAtom } from "jotai";
-import { FileUp, Lock, OctagonAlert } from "lucide-react";
+import { CalendarRange, Database, FileUp, LockKeyhole, RefreshCw, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingsScreen() {
   const [rawCourses] = useAtom(rawCoursesAtom);
-
   const [exportData, importData] = useAtom(exportAtom);
-
-  const [wantsChangeProgram, setWantsChangeProgram] = useState(false);
-  const [hasBackuped, setHasBackuped] = useState(false);
-
+  const [showProgramChange, setShowProgramChange] = useState(false);
+  const [showResetOptions, setShowResetOptions] = useState(false);
   const [, setPlanning] = useAtom(planningAtom);
   const [, setGrading] = useAtom(gradesAtom);
-  const [, setCustomCourses] = useAtom(customCoursesAtom);
   const [program] = useAtom(programAtom);
   const [startingSemester, setStartingSemester] = useAtom(startingSemesterAtom);
 
-  const exportFile = () => {
-    downloadJSON(exportData, "StudyPlanner.json");
-    setHasBackuped(true);
-  };
+  const exportFile = () => downloadJSON(exportData, "StudyPlanner.json");
 
   const importFile = (file: File | null | undefined) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = e.target?.result as string;
-      importData(data);
-    };
+    reader.onload = (event) => importData(event.target?.result as string);
     reader.readAsText(file);
   };
 
   const resetPlanning = () => {
     setPlanning([]);
-    toast.success("Successfully reset course planning");
+    toast.success("Course planning reset");
   };
 
   const resetGrading = () => {
     setGrading([]);
-    toast.success("Successfully reset grading");
+    toast.success("Grades reset");
   };
 
   const resetToRecommended = () => {
     setPlanning(
-      rawCourses.map((c) => ({
-        name: c.name,
-        plannedSemester: c.recommendedSemester!,
-      })),
+      rawCourses.flatMap((course) =>
+        course.recommendedSemester === null
+          ? []
+          : [
+              {
+                name: course.name,
+                plannedSemester: course.recommendedSemester,
+              },
+            ],
+      ),
     );
-    setStartingSemester({ year: new Date().getFullYear(), type: "WS" });
-    toast.success("Successfully reset to recommended study plan");
+    toast.success("Recommended study plan restored");
   };
 
   return (
-    <section className="h-full grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 m-3 sm:m-4">
-      <Card className="">
-        <CardHeader>
-          <CardTitle>Starting Semester</CardTitle>
-          <CardDescription>
-            Specify when you started studying. This will correctly count your first, second etc. semester.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="year">Year</Label>
-                <Input
-                  id="year"
-                  placeholder={new Date().getFullYear().toString()}
-                  type="number"
-                  min="1900"
-                  max="2099"
-                  step={"1"}
-                  value={startingSemester.year}
-                  onChange={(e) =>
-                    setStartingSemester({
-                      ...startingSemester,
-                      year: parseInt(e.target.value),
-                    })
-                  }
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="semester">Semester</Label>
-                <ToggleGroup
-                  type="single"
-                  id={"semester"}
-                  value={startingSemester.type}
-                  onValueChange={(value) =>
+    <section className="m-2 flex flex-col gap-5 py-3 sm:m-4">
+      <header>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Manage your programme, data, display, and JKU services.</p>
+      </header>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SettingsCard
+          icon={CalendarRange}
+          title="Study start"
+          description="Semester numbering throughout the planner starts here."
+          className="lg:col-span-2"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="year">Starting year</Label>
+              <Input
+                id="year"
+                type="number"
+                min="1900"
+                max="2099"
+                step="1"
+                value={startingSemester.year}
+                onChange={(event) => {
+                  const year = Number(event.target.value);
+                  if (Number.isInteger(year)) setStartingSemester({ ...startingSemester, year });
+                }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Starting term</Label>
+              <ToggleGroup
+                type="single"
+                value={startingSemester.type}
+                onValueChange={(value) => {
+                  if (value)
                     setStartingSemester({
                       ...startingSemester,
                       type: value as SemesterType,
-                    })
-                  }
-                >
-                  <ToggleGroupItem value="WS" aria-label="Toggle WS">
-                    <h2>WS</h2>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="SS" aria-label="Toggle SS">
-                    <h2>SS</h2>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+                    });
+                }}
+                className="grid grid-cols-2"
+              >
+                <ToggleGroupItem value="WS" aria-label="Winter semester">
+                  Winter
+                </ToggleGroupItem>
+                <ToggleGroupItem value="SS" aria-label="Summer semester">
+                  Summer
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
-          </form>
-        </CardContent>
-      </Card>
-      <Card className="">
-        <CardHeader>
-          <CardTitle>Import/Export</CardTitle>
-          <CardDescription>Import, export and share your data.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <Label htmlFor="json-import">Import JSON File</Label>
-          <Input type="file" id="json-import" onChange={(e) => importFile(e.target.files?.item(0))} accept=".json" />
-          <KusssImportDialog
-            rawCourses={rawCourses}
-            startingSemester={startingSemester}
-            onImport={({ grades, planning, customCourses }) => {
-              if (!grades.length && !planning.length && !customCourses.length) {
-                toast.error("No matching courses found for this program.");
-                return;
-              }
-
-              setCustomCourses((current) => {
-                const next = new Map(current.map((course) => [`${course.type} ${course.name}`, course]));
-                for (const course of customCourses) {
-                  next.set(`${course.type} ${course.name}`, course);
-                }
-                return Array.from(next.values());
-              });
-
-              setGrading((current) => {
-                const next = new Map(current.map((entry) => [entry.name, entry.grade]));
-                for (const grade of grades) {
-                  next.set(grade.name, grade.grade);
-                }
-                return Array.from(next.entries()).map(([name, grade]) => ({
-                  name,
-                  grade,
-                }));
-              });
-
-              setPlanning((current) => {
-                const next = new Map(current.map((entry) => [entry.name, entry.plannedSemester]));
-                for (const plan of planning) {
-                  next.set(plan.name, plan.plannedSemester);
-                }
-                return Array.from(next.entries()).map(([name, plannedSemester]) => ({
-                  name,
-                  plannedSemester,
-                }));
-              });
-
-              toast.success(`Imported ${grades.length} grades and ${planning.length} semesters.`);
-            }}
-          />
-          <Button onClick={exportFile} variant={"outline"}>
-            <FileUp /> Export
-          </Button>
-          <ShareButton variant="outline" className="w-full" />
-        </CardContent>
-      </Card>
-      <Card className="">
-        <CardHeader>
-          <CardTitle>Theming</CardTitle>
-        </CardHeader>
-        <CardContent className="gap-4 flex flex-row items-center">
-          <Label htmlFor="mode-toggle">Dark Mode</Label>
-          <ModeToggle />
-        </CardContent>
-      </Card>
-      <Card className={"relative"}>
-        <CardHeader className={cn(!wantsChangeProgram && "blur-sm")}>
-          <CardTitle>Change Program</CardTitle>
-        </CardHeader>
-        <CardContent className={cn("flex flex-col gap-4", !wantsChangeProgram && "blur-sm")}>
-          <Label htmlFor="program-toggle" className="sr-only">
-            Bachelor's Program
-          </Label>
-          <ProgramToggle />
-        </CardContent>
-        {!wantsChangeProgram && (
-          <div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
-            <OctagonAlert size={50} />
-            <h2 className="text-center font-bold m-2">
-              Changing your Bachelor's Program will reset your data! Back up (Export) your Data before abandoning your
-              current program!
-            </h2>
-            <Button onClick={() => setWantsChangeProgram(true)} variant={"destructive"}>
-              I have enough of {program}!
-            </Button>
           </div>
-        )}
-      </Card>
-      <Card className={"relative"}>
-        <CardHeader className={cn(!hasBackuped && "blur-sm")}>
-          <CardTitle>Reset</CardTitle>
-        </CardHeader>
-        <CardContent className={cn("flex flex-col gap-4", !hasBackuped && "blur-sm")}>
-          <Button onClick={resetPlanning} variant={"destructive"}>
-            Reset course planning
-          </Button>
-          <Button onClick={resetGrading} variant={"destructive"}>
-            Reset grading
-          </Button>
-          <Button onClick={resetToRecommended} variant={"destructive"}>
-            Reset to recommended study plan
-          </Button>
-        </CardContent>
-        {!hasBackuped && (
-          <div className="bg-gray-800/40 w-full h-full absolute top-0 rounded-md flex flex-col items-center justify-center text-white gap-2">
-            <Lock size={50} />
-            <h2 className="text-center font-bold">Back up (Export) your Data before doing something dangerous!</h2>
-            <Button onClick={() => setHasBackuped(true)} variant={"destructive"}>
-              I like living on the Edge
+        </SettingsCard>
+
+        <SettingsCard
+          icon={Database}
+          title="Import, export, and share"
+          description="Your planner is stored locally. Export a backup before changing or resetting data."
+          className="lg:col-span-2"
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <Label htmlFor="json-import" className="mb-1.5 block text-sm">
+                Import backup
+              </Label>
+              <Input
+                type="file"
+                id="json-import"
+                onChange={(event) => importFile(event.target.files?.item(0))}
+                accept=".json"
+              />
+            </div>
+            <div className="flex items-end">
+              <KusssImportButton className="w-full" variant="secondary" label="Import from myJKU" />
+            </div>
+            <Button onClick={exportFile} variant="outline" className="self-end">
+              <FileUp /> Export backup
             </Button>
+            <ShareButton variant="outline" className="self-end" />
           </div>
-        )}
-      </Card>
+        </SettingsCard>
+
+        <SettingsCard
+          icon={ShieldAlert}
+          title="Change programme"
+          description={`You are currently planning the ${program} bachelor's programme. Changing it clears planning and grades.`}
+        >
+          {showProgramChange ? (
+            <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+              <p className="text-sm text-foreground">Export a backup first if you may need this plan again.</p>
+              <ProgramToggle />
+              <Button variant="ghost" size="sm" onClick={() => setShowProgramChange(false)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={() => setShowProgramChange(true)}>
+              <LockKeyhole /> Review programme change
+            </Button>
+          )}
+        </SettingsCard>
+
+        <SettingsCard
+          icon={RefreshCw}
+          title="Reset data"
+          description="Clear one part of the planner or restore the recommended semester layout."
+        >
+          {showResetOptions ? (
+            <div className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+              <Button onClick={resetPlanning} variant="destructive" className="w-full">
+                Clear semester plan
+              </Button>
+              <Button onClick={resetGrading} variant="destructive" className="w-full">
+                Clear all grades
+              </Button>
+              <Button onClick={resetToRecommended} variant="outline" className="w-full">
+                Restore recommended plan
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setShowResetOptions(false)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={() => setShowResetOptions(true)}>
+              <LockKeyhole /> Show reset options
+            </Button>
+          )}
+        </SettingsCard>
+      </div>
     </section>
+  );
+}
+
+function SettingsCard({
+  icon: Icon,
+  title,
+  description,
+  children,
+  className,
+}: {
+  icon: typeof CalendarRange;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card className={`shadow-none ${className ?? ""}`}>
+      <CardHeader className="p-5">
+        <div className="flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary" />
+          <CardTitle className="text-lg">{title}</CardTitle>
+        </div>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="p-5 pt-0">{children}</CardContent>
+    </Card>
   );
 }
