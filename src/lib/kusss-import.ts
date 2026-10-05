@@ -6,6 +6,11 @@ const GRADE_MAP: Record<string, number> = {
   satisfactory: 3,
   sufficient: 4,
   insufficient: 5,
+  "sehr gut": 1,
+  gut: 2,
+  befriedigend: 3,
+  genügend: 4,
+  "nicht genügend": 5,
 };
 
 /**
@@ -19,6 +24,11 @@ const COURSE_TYPE_MAP: Record<string, string[]> = {
   CC: ["KV"],
   SE: ["SE"],
   PC: ["PR"],
+  VL: ["VL", "VO"],
+  VO: ["VL", "VO"],
+  UE: ["UE"],
+  KV: ["KV"],
+  PR: ["PR"],
 };
 
 const toLocalCourseType = (apiType: string): CourseType => {

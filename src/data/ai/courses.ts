@@ -186,7 +186,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "UE",
         subject: aiCourses.algorithmsAndDataStructuresI,
-        legacyNames: ["UE Algorithms and Data Structures I"],
+        legacyNames: ["UE Algorithms and Data Structures I", "UE Algorithmen und Datenstrukturen 1"],
         ects: 1.5,
         available: "SS",
         recommendedSemester: 2,
@@ -195,7 +195,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "VL",
         subject: aiCourses.algorithmsAndDataStructuresI,
-        legacyNames: ["VL Algorithms and Data Structures I"],
+        legacyNames: ["VL Algorithms and Data Structures I", "VL Algorithmen und Datenstrukturen 1"],
         ects: 3,
         available: "SS",
         recommendedSemester: 2,
@@ -204,7 +204,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "UE",
         subject: aiCourses.algorithmsAndDataStructuresII,
-        legacyNames: ["UE Algorithms and Data Structures II"],
+        legacyNames: ["UE Algorithms and Data Structures II", "UE Algorithmen und Datenstrukturen 2"],
         ects: 1.5,
         available: "WS",
         recommendedSemester: 3,
@@ -213,7 +213,7 @@ export const courseGroups = defineCourseGroups([
       {
         type: "VL",
         subject: aiCourses.algorithmsAndDataStructuresII,
-        legacyNames: ["VL Algorithms and Data Structures II"],
+        legacyNames: ["VL Algorithms and Data Structures II", "VL Algorithmen und Datenstrukturen 2"],
         ects: 3,
         available: "WS",
         recommendedSemester: 3,
